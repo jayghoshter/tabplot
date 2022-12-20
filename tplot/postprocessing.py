@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from scipy.interpolate import interp1d
 
 def parametric_line(ax, slope, intercept, xlog=False, ylog=False):
     """Plot a line from slope and intercept"""
@@ -41,3 +42,10 @@ def fit_line(ax, xs, ys, xlog=False, ylog=False):
         score = model.score(X,Y)
         parametric_line(ax, model.coef_, model.intercept_)
         print(f"R2={score} | m={model.coef_} | c={model.intercept_}")
+
+def extrapolate(ax, xs, ys, kind='linear'):
+    xlim = ax.get_xlim()
+    xsmooth = np.linspace(xlim[0], xlim[1], 250) 
+    for x,y in zip(xs, ys): 
+        ysmooth = interp1d(x, y, kind=kind, fill_value='extrapolate')(xsmooth)
+        ax.plot(xsmooth, ysmooth, label=f"{kind} extrapolation")

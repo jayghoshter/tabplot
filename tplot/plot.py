@@ -4,6 +4,7 @@ from tplot.utils import normalize
 from tplot.utils import scale_axis
 
 from tplot.postprocessing import fit_line
+from tplot.postprocessing import extrapolate
 
 from matplotlib import pyplot as plt
 import matplotlib as mpl
@@ -254,12 +255,16 @@ class Plot:
 
 
     def generate(self,):
+        # PREPROCESSING:
         self._update_params()
+
         plt.style.use(self.style)
+
         self.fig, self.ax = plt.subplots(figsize=self.figsize)
 
         self._setup_axes()
 
+        # PROCESSING:
         xs, ys, = self._process_files(self.files)
         lines = self._plot_data(self.ax, xs, ys)
 
@@ -273,14 +278,31 @@ class Plot:
         if self.legend:
             self._plot_legend(self.ax, lines + lines2)
 
-        # TODO: Postprocessing  
+        # POSTPROCESSING:
         if self.fit_line:
             fit_line(self.ax, xs, ys, self.xlog, self.ylog)
 
             if self.twinx: 
                 fit_line(self.ax2, xs2, ys2, self.xlog, self.ylog)
             
-        
+        if self.extrapolate:
+            extrapolate(self.ax, xs, ys, self.extrapolate)
+
+        # hlines and vlines are plotted at the end so that xlims and ylims are
+        # not later modified by further plotting
+        xlim = self.ax.get_xlim()
+        self.ax.hlines(self.hlines, xlim[0], xlim[1]) # type:ignore
+
+        ylim = self.ax.get_ylim()
+        self.ax.vlines(self.vlines, ylim[0], ylim[1]) # type:ignore
+
+        if self.reverse_x:
+            xlim = self.ax.get_xlim()
+            self.ax.set_xlim((xlim[1], xlim[0]))
+
+        if self.reverse_y:
+            ylim = self.ax.get_ylim()
+            self.ax.set_ylim((ylim[1], ylim[0]))
 
     def display(self,):
         plt.show()
