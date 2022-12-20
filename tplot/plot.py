@@ -12,6 +12,7 @@ from cycler import cycler
 import numpy as np
 from scipy.interpolate import make_interp_spline, BSpline
 
+
 class Plot:
 
     def __init__(self) -> None:
@@ -95,17 +96,16 @@ class Plot:
         n_total_files = len(self.files) + len(self.twinx)
 
         cmap = mpl.cm.get_cmap(name=self.colormap)
-        if 'colors' in cmap.__dict__: 
+        if 'colors' in cmap.__dict__:
             # Discrete colormap
             self.COLORS = cmap.colors
-        else: 
+        else:
             # Continuous colormap
             self.COLORS = [cmap(1.*i/(n_total_files-1)) for i in range(n_total_files)]
 
-
         if self.line_color_indices:
             self.line_color_indices = make_iterable(self.line_color_indices, 0, len(self.files))
-            self.COLORS = [ self.COLORS[i] for i in self.line_color_indices ]
+            self.COLORS = [self.COLORS[i] for i in self.line_color_indices]
 
         self.color_cycler = cycler('color', self.COLORS)
         self.color_cycler2 = cycler('color', self.COLORS[len(self.files):] + self.COLORS[:len(self.files)])
@@ -170,7 +170,7 @@ class Plot:
         if self.ylims:
             ax.set_ylim(self.ylims)
 
-        if self.twinx: 
+        if self.twinx:
             self.ax2 = ax.twinx()
             ax2 = self.ax2
             ax2.set_prop_cycle(self.color_cycler2)
@@ -189,7 +189,7 @@ class Plot:
 
         bar_count = 0
 
-        for filename in files: 
+        for filename in files:
             print(f"Plotting: {filename}")
 
             # TODO: Handle xticks and xticklabels from files
@@ -200,7 +200,7 @@ class Plot:
             if self.normalize_x:
                 x = normalize(x, self.normalize_x)
 
-            ## TODO: Allow this to be specified per plot line
+            # TODO: Allow this to be specified per plot line
             if self.xscale:
                 if x == []:
                     x = [1] * len(y)
@@ -208,14 +208,14 @@ class Plot:
             if self.yscale:
                 y = scale_axis(y, self.yscale)
 
-            ## Unlike --xlog and --ylog, these actually scale the data
-            if self.xlogify: 
+            # Unlike --xlog and --ylog, these actually scale the data
+            if self.xlogify:
                 x = np.log10(x)
-            if self.ylogify: 
+            if self.ylogify:
                 y = np.log10(y)
 
-            if self.smoothen_order: 
-                xsmooth = np.linspace(min(x), max(x), self.smoothen_npoints) 
+            if self.smoothen_order:
+                xsmooth = np.linspace(min(x), max(x), self.smoothen_npoints)
                 x_new = np.array(x)
                 y_new = np.array(y)
                 ordering = x_new.argsort()
@@ -234,14 +234,14 @@ class Plot:
     def _plot_data(self, ax, xs, ys):
         lines = []
         for x,y,label,linestyle,marker,markersize,mfc,mec,mew,linewidth,zorder in zip(xs,ys,
-                                                                    self.labels, 
-                                                                    self.linestyles, 
-                                                                    self.markers, 
+                                                                    self.labels,
+                                                                    self.linestyles,
+                                                                    self.markers,
                                                                     self.markersize,
                                                                     self.marker_face_colors,
                                                                     self.marker_edge_colors,
                                                                     self.marker_edge_widths,
-                                                                    self.linewidths, 
+                                                                    self.linewidths,
                                                                     self.zorder
                                                                     ):
             line = ax.plot(x, y, label=label.replace('_', '-'), marker=marker, markersize=markersize, markerfacecolor=mfc, markeredgewidth=mew, linestyle=linestyle, linewidth=linewidth, zorder=zorder)
@@ -252,7 +252,6 @@ class Plot:
     def _plot_legend(self, ax, all_lines):
         all_labels = [l.get_label() for l in all_lines]
         ax.legend(all_lines, all_labels, loc=self.legend[0], bbox_to_anchor=(float(self.legend[1]),float(self.legend[2])), shadow=True, fontsize=self.legend_size, ncol=self.legend_ncol)
-
 
     def generate(self,):
         # PREPROCESSING:
@@ -282,19 +281,19 @@ class Plot:
         if self.fit_line:
             fit_line(self.ax, xs, ys, self.xlog, self.ylog)
 
-            if self.twinx: 
+            if self.twinx:
                 fit_line(self.ax2, xs2, ys2, self.xlog, self.ylog)
-            
+
         if self.extrapolate:
             extrapolate(self.ax, xs, ys, self.extrapolate)
 
         # hlines and vlines are plotted at the end so that xlims and ylims are
         # not later modified by further plotting
         xlim = self.ax.get_xlim()
-        self.ax.hlines(self.hlines, xlim[0], xlim[1]) # type:ignore
+        self.ax.hlines(self.hlines, xlim[0], xlim[1])
 
         ylim = self.ax.get_ylim()
-        self.ax.vlines(self.vlines, ylim[0], ylim[1]) # type:ignore
+        self.ax.vlines(self.vlines, ylim[0], ylim[1])
 
         if self.reverse_x:
             xlim = self.ax.get_xlim()
