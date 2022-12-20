@@ -3,6 +3,8 @@ from tplot.utils import readfile
 from tplot.utils import normalize
 from tplot.utils import scale_axis
 
+from tplot.postprocessing import fit_line
+
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from cycler import cycler
@@ -78,7 +80,7 @@ class Plot:
         # Addins
         self.hlines = []
         self.vlines = []
-        self.fit_lines = []
+        self.fit_line = False
 
         self.resample = False
         self.reaverage = False
@@ -262,6 +264,8 @@ class Plot:
         lines = self._plot_data(self.ax, xs, ys)
 
         lines2 = []
+        xs2 = []
+        ys2 = []
         if self.twinx:
             xs2, ys2 = self._process_files(self.twinx)
             lines2 = self._plot_data(self.ax2, xs2, ys2)
@@ -270,6 +274,13 @@ class Plot:
             self._plot_legend(self.ax, lines + lines2)
 
         # TODO: Postprocessing  
+        if self.fit_line:
+            fit_line(self.ax, xs, ys, self.xlog, self.ylog)
+
+            if self.twinx: 
+                fit_line(self.ax2, xs2, ys2, self.xlog, self.ylog)
+            
+        
 
     def display(self,):
         plt.show()
