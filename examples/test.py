@@ -2,6 +2,7 @@ from tplot import Plot
 
 plot = Plot()
 plot.files = ['./monodisperse']
+plot.twinx = ['./polydisperse']
 plot.linewidths = 2
 plot.title = 'Title'
 plot.xlabel = 'x axis'
