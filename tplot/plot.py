@@ -105,6 +105,7 @@ class Plot:
             self.COLORS = [ self.COLORS[i] for i in self.line_color_indices ]
 
         self.color_cycler = cycler('color', self.COLORS)
+        self.color_cycler2 = cycler('color', self.COLORS[len(self.files):] + self.COLORS[:len(self.files)])
 
         if not self.labels:
             self.labels = iter(self.files + self.twinx)
@@ -168,6 +169,7 @@ class Plot:
 
         if self.twinx: 
             self.ax2 = ax.twinx()
+            ax2 = self.ax2
             ax2.set_prop_cycle(self.color_cycler2)
             ax2 = self.ax2
             ax2.set(ylabel=self.y2label)
