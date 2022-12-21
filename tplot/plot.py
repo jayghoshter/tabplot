@@ -106,7 +106,7 @@ class Plot:
             self.COLORS = [cmap(1.*i/(n_total_files-1)) for i in range(n_total_files)]
 
         if self.line_color_indices:
-            self.line_color_indices = make_iterable(self.line_color_indices, 0, len(self.files))
+            self.line_color_indices = make_iterable(self.line_color_indices, 0, len(self.files), return_list = True)
             self.COLORS = [self.COLORS[i] for i in self.line_color_indices]
 
         self.color_cycler = cycler('color', self.COLORS)
@@ -118,28 +118,39 @@ class Plot:
             self.labels = iter(self.labels)
 
         # Ensure that our properties are of the right length
-        self.linestyles = make_iterable(self.linestyles, 'solid', n_total_files)
-        self.linewidths = make_iterable(self.linewidths, 1, n_total_files)
-        self.markers = make_iterable(self.markers, None, n_total_files)
-        self.markersize = make_iterable(self.markersize, 6.0, n_total_files)
-        self.marker_edge_widths= make_iterable(self.marker_edge_widths, 1.0, n_total_files)
-        self.marker_face_colors = make_iterable(self.marker_face_colors, cmap_colors_to_hex(self.COLORS), n_total_files)
-        self.marker_edge_colors = make_iterable(self.marker_edge_colors, cmap_colors_to_hex(self.COLORS), n_total_files)
-        self.zorder = self.zorder or iter(range(1,n_total_files + 1))
+        self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
+        self.linewidths         = make_iterable(self.linewidths        , 1      , n_total_files, return_list = True)
+        self.markers            = make_iterable(self.markers           , None   , n_total_files, return_list = True)
+        self.markersize         = make_iterable(self.markersize        , 6.0    , n_total_files, return_list = True)
+        self.marker_edge_widths = make_iterable(self.marker_edge_widths, 1.0    , n_total_files, return_list = True)
+        self.marker_face_colors = make_iterable(self.marker_face_colors, None   , n_total_files, return_list = True)
+        self.marker_edge_colors = make_iterable(self.marker_edge_colors, None   , n_total_files, return_list = True)
+
+        self.zorder             = self.zorder or iter(range(1,n_total_files + 1))
 
         # Create a cycler
-        self.final_cycler = cycler(
-            color = list(self.COLORS),
-            linestyle = list(self.linestyles),
-            linewidth = list(self.linewidths),
-            marker = list(self.markers),
-            markersize = list(self.markersize),
+        self.final_cycler = self._get_props_cycler()
+
+        if self.twinx: 
+            self.final_cycler2 = self.final_cycler[len(self.files):].concat(self.final_cycler[:len(self.files)])
+
+    def _get_props_cycler(self):
+        main_c =  cycler(
+            color           = list(self.COLORS),
+            linestyle       = list(self.linestyles),
+            linewidth       = list(self.linewidths),
+            marker          = list(self.markers),
+            markersize      = list(self.markersize),
             markeredgewidth = list(self.marker_edge_widths),
-            markerfacecolor = cmap_colors_to_hex(self.COLORS),
-            markeredgecolor = cmap_colors_to_hex(self.COLORS),
         )
 
-        self.final_cycler2 = self.final_cycler[len(self.files):].concat(self.final_cycler[:len(self.files)])
+        if list(filter(None, self.marker_edge_colors)):
+            main_c = main_c + cycler(markeredgecolor = list(self.marker_edge_colors) )
+
+        if list(filter(None, self.marker_face_colors)):
+            main_c = main_c + cycler(markerfacecolor = list(self.marker_face_colors) )
+
+        return main_c
 
     def _setup_ticks(self,):
         # TODO: Move away from global plt
