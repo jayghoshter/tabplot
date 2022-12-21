@@ -2,7 +2,6 @@ from tplot.utils import make_iterable
 from tplot.utils import readfile
 from tplot.utils import normalize
 from tplot.utils import scale_axis
-from tplot.utils import cmap_colors_to_hex
 
 from tplot.postprocessing import fit_lines
 from tplot.postprocessing import extrapolate
