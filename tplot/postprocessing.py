@@ -22,7 +22,7 @@ def parametric_line(ax, slope, intercept, xlog=False, ylog=False):
     ax.plot(x_vals, y_vals, c='gray')
 
 
-def fit_line(ax, xs, ys, xlog=False, ylog=False):
+def fit_lines(ax, xs, ys, xlog=False, ylog=False):
     for x,y in zip(xs, ys): 
         X = np.array(x)
         Y = np.array(y)
