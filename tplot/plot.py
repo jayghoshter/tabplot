@@ -127,7 +127,7 @@ class Plot:
         else:
             self.labels = self.labels
 
-        # Ensure that our properties are of the right length
+        # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
         self.linewidths         = make_iterable(self.linewidths        , 1      , n_total_files, return_list = True)
         self.markers            = make_iterable(self.markers           , None   , n_total_files, return_list = True)
