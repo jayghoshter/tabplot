@@ -1,5 +1,6 @@
 from itertools import cycle, islice, repeat
 from subprocess import run
+import matplotlib as mpl
 
 def make_iterable(obj, default_value, default_length):
     """
@@ -10,7 +11,7 @@ def make_iterable(obj, default_value, default_length):
     """
     if not obj:
         obj = iter([default_value] * default_length)
-    elif hasattr(obj, '__iter__'):
+    elif hasattr(obj, '__iter__') and not isinstance(obj, str):
         obj = islice(cycle(obj), default_length)
     else:
         obj = islice(repeat(obj), default_length)
@@ -77,3 +78,6 @@ def scale_axis(vec:list, scale_factor_or_file):
         vec = [ v * scale_factor for v in vec ]
     return vec
 
+def cmap_colors_to_hex(cmap_colors): 
+    # USAGE: cmap_colors_to_hex(plt.cm.tab10.colors)
+    return list(map(lambda x: mpl.colors.rgb2hex(x), cmap_colors))
