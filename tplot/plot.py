@@ -336,3 +336,7 @@ class Plot:
 
     def save(self, filename):
         self.fig.savefig(filename, dpi=300)
+
+    def __rich_repr__(self):
+        yield self.files
+        yield "files", self.files
