@@ -2,7 +2,7 @@ from itertools import cycle, islice, repeat
 from subprocess import run
 import matplotlib as mpl
 
-def make_iterable(obj, default_value, default_length):
+def make_iterable(obj, default_value, default_length, return_list=True):
     """
     For a given object, 
         - if it is false-like, return [ default_value ] * default_length
@@ -16,7 +16,10 @@ def make_iterable(obj, default_value, default_length):
     else:
         obj = islice(repeat(obj), default_length)
 
-    return obj
+    if return_list:
+        return list(obj)
+    else:
+        return obj
 
 def readfile(data_path, columns=[0,1], header=False, xticksColumn=None, xticklabelsColumn=None):
     """ Read x-y CSV-style files
