@@ -249,9 +249,17 @@ class Plot:
 
         return lines
 
-    def _plot_legend(self, ax, all_lines):
+    def _plot_legend(self, ax, all_lines, legend=None):
+        if legend is None:
+            legend = self.legend
         all_labels = [l.get_label() for l in all_lines]
-        ax.legend(all_lines, all_labels, loc=self.legend[0], bbox_to_anchor=(float(self.legend[1]),float(self.legend[2])), shadow=True, fontsize=self.legend_size, ncol=self.legend_ncol)
+        ax.legend(all_lines,
+                  all_labels,
+                  loc=legend[0],
+                  bbox_to_anchor=(float(legend[1]),float(legend[2])),
+                  shadow=True,
+                  fontsize=self.legend_size,
+                  ncol=self.legend_ncol)
 
     def generate(self,):
         # PREPROCESSING:
@@ -274,8 +282,10 @@ class Plot:
             xs2, ys2 = self._process_files(self.twinx)
             lines2 = self._plot_data(self.ax2, xs2, ys2)
 
+        self.lines = lines + lines2
+
         if self.legend:
-            self._plot_legend(self.ax, lines + lines2)
+            self._plot_legend(self.ax, self.lines)
 
         # POSTPROCESSING:
         if self.fit_lines:
@@ -304,6 +314,8 @@ class Plot:
             self.ax.set_ylim((ylim[1], ylim[0]))
 
     def display(self,):
+        # Default legend position of below the plot doesn't show on frontend
+        self._plot_legend(self.ax, self.lines, ('upper left', 0, 1))
         plt.show()
 
     def save(self, filename):
