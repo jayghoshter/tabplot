@@ -113,9 +113,9 @@ class Plot:
         self.color_cycler2 = cycler('color', self.COLORS[len(self.files):] + self.COLORS[:len(self.files)])
 
         if not self.labels:
-            self.labels = iter(self.files + self.twinx)
+            self.labels = self.files + self.twinx
         else:
-            self.labels = iter(self.labels)
+            self.labels = self.labels
 
         # Ensure that our properties are of the right length
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
