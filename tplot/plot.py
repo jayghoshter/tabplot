@@ -329,13 +329,17 @@ class Plot:
             ylim = self.ax.get_ylim()
             self.ax.set_ylim((ylim[1], ylim[0]))
 
+        return self
+
     def display(self,):
         # Default legend position of below the plot doesn't show on frontend
         self._plot_legend(self.ax, self.lines, ('upper left', 0, 1))
         plt.show()
+        return self
 
     def save(self, filename):
         self.fig.savefig(filename, dpi=300)
+        return self
 
     def __rich_repr__(self):
         yield self.files
