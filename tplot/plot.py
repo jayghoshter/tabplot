@@ -12,86 +12,89 @@ import matplotlib as mpl
 from cycler import cycler
 import numpy as np
 from scipy.interpolate import make_interp_spline, BSpline
+from collections.abc import Iterable
 
+from typing import Any, Optional, Tuple, Sequence
 
 class Plot:
 
     def __init__(self, **kwargs) -> None:
 
         # Labels
-        self.title = ''
-        self.xlabel = ''
-        self.ylabel = ''
+        self.title:str  = ''
+        self.xlabel:str = ''
+        self.ylabel:str = ''
 
         # Size and dimension
-        self.aspect = 'auto'
-        self.figsize = [4.0, 3.0]
-        self.xlims = None
-        self.ylims = None
+        self.aspect :str                          = 'auto'
+        self.figsize:Tuple[float, float]          = (4.0, 3.0)
+        self.xlims  :Optional[Tuple[float,float]] = None
+        self.ylims  :Optional[Tuple[float,float]] = None
 
         # Direction
-        self.reverse_x = False
-        self.reverse_y = False
+        self.reverse_x:bool = False
+        self.reverse_y:bool = False
 
         # Ticks
-        self.xticks = []
-        self.yticks = []
-        self.xtick_labels = []
-        self.ytick_labels = []
-        self.xlog = False
-        self.ylog = False
+        self.xticks      :list = []
+        self.yticks      :list = []
+        self.xtick_labels:list = []
+        self.ytick_labels:list = []
+        self.xlog        :bool = False
+        self.ylog        :bool = False
 
-        self.show_axis = True
+        # TODO: 
+        self.show_axis:bool = True
 
-        self.linestyles = []
-        self.linewidths = []
-        self.labels = []
-        self.zorder = []
-        self.markers = []
-        self.markersize = []
-        self.marker_face_colors = []
-        self.marker_edge_colors = []
-        self.marker_edge_widths = []
-        self.line_color_indices = []
-        self.line_color_indices_2 = []
+        self.linestyles          :Iterable = []
+        self.linewidths          :Iterable = []
+        self.labels              :Iterable = []
+        self.zorder              :Iterable = []
+        self.markers             :Iterable = []
+        self.markersize          :Iterable = []
+        self.marker_face_colors  :Iterable = []
+        self.marker_edge_colors  :Iterable = []
+        self.marker_edge_widths  :Iterable = []
+        self.line_color_indices  :Iterable[int] = []
+        self.line_color_indices_2:Iterable[int] = []
 
-        self.colormap = 'tab10'
+        self.colormap:str = 'tab10'
 
-        self.legend = ('upper center', '0.5', '-0.2')
-        self.legend_frameon = False
-        self.legend_size = 'medium'
-        self.legend_ncol = 1
+        self.legend        :Tuple[str, str|float, str|float] = ('upper center', '0.5', '-0.2')
+        self.legend_frameon:bool                             = False
+        self.legend_size   :str                              = 'medium'
+        self.legend_ncol   :int                              = 1
 
         # Transforms
-        self.smoothen_order = None
-        self.smoothen_npoints = 250
-        self.normalize_y = None
-        self.normalize_x = None
-        self.xscale = None
-        self.yscale = None
-        self.extrapolate = None
-        self.xlogify = False
-        self.ylogify = False
+        self.smoothen_order:Optional[int] = None
+        self.smoothen_npoints:int = 250
+        self.normalize_y:Optional[bool|str|float] = None
+        self.normalize_x:Optional[bool|str|float] = None
+        self.xscale:Optional[float] = None
+        self.yscale:Optional[float] = None
+        self.extrapolate:Optional[str] = None
+        self.xlogify:bool = False
+        self.ylogify:bool = False
 
-        self.style = ['science', 'ieee']
+        self.style:list[str] = ['science']
 
-        self.y2label = ''
-        self.y2lims = None
-        self.y2log = None
-        self.colormap2 = 'tab10'
+        self.y2label:str = ''
+        self.y2lims :Optional[Tuple[float,float]] = None
+        self.y2log:bool = False
+        self.colormap2:str = 'tab10'
 
         # Addins
-        self.hlines = []
-        self.vlines = []
-        self.fit_lines = False
+        self.hlines:list[float] = []
+        self.vlines:list[float] = []
+        self.fit_lines:bool = False
 
         self.resample = False
         self.reaverage = False
         self.reaverage_cylindrical = False
 
-        self.header = False
-        self.files = []
-        self.twinx = []
+        self.header:bool = False
+        self.files:list = []
+        self.twinx:list = []
 
         for key, value in kwargs.items():
             setattr(self, key, value)
