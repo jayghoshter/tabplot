@@ -285,6 +285,7 @@ class Plot:
         self.fig, self.ax = plt.subplots(figsize=self.figsize)
 
         self._setup_axes()
+        self._setup_ticks()
 
         # PROCESSING:
         xs, ys, = self._process_files(self.files)
