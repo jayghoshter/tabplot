@@ -16,7 +16,7 @@ from scipy.interpolate import make_interp_spline, BSpline
 
 class Plot:
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
 
         # Labels
         self.title = ''
@@ -92,6 +92,14 @@ class Plot:
         self.header = False
         self.files = []
         self.twinx = []
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def fromdict(self, data:dict):
+        for key, value in data.items():
+            setattr(self, key, value)
+        return self
 
     def _update_params(self):
 

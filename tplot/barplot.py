@@ -1,8 +1,9 @@
 from tplot import Plot
 
 class BarPlot(Plot):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         self.bar_width = 0.25
 
     def _plot_data(self, ax, xs, ys):
