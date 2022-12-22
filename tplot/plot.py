@@ -45,17 +45,17 @@ class Plot:
         # TODO: 
         self.show_axis:bool = True
 
-        self.linestyles          :Iterable = []
-        self.linewidths          :Iterable = []
-        self.labels              :Iterable = []
-        self.zorder              :Iterable = []
-        self.markers             :Iterable = []
-        self.markersize          :Iterable = []
-        self.marker_face_colors  :Iterable = []
-        self.marker_edge_colors  :Iterable = []
-        self.marker_edge_widths  :Iterable = []
-        self.line_color_indices  :Iterable[int] = []
-        self.line_color_indices_2:Iterable[int] = []
+        self.linestyles          :str|Iterable[str]     = []
+        self.linewidths          :float|Iterable[float] = []
+        self.labels              :str|Iterable[str]     = []
+        self.zorders             :float|Iterable[float] = []
+        self.markers             :str|Iterable[str]     = []
+        self.markersize          :float|Iterable[float] = []
+        self.marker_face_colors  :str|Iterable[str]     = []
+        self.marker_edge_colors  :str|Iterable[str]     = []
+        self.marker_edge_widths  :float|Iterable        = []
+        self.line_color_indices  :int|Iterable[int]     = []
+        self.line_color_indices_2:int|Iterable[int]     = []
 
         self.colormap:str = 'tab10'
 
@@ -125,7 +125,7 @@ class Plot:
         if not self.labels:
             self.labels = self.files + self.twinx
         else:
-            self.labels = self.labels
+            self.labels = list(self.labels)
 
         # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
