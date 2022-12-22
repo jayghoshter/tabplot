@@ -87,6 +87,12 @@ class Plot:
         self.vlines:list[float] = []
         self.fit_lines:bool = False
 
+        self.fill:Optional[float|str] = None
+        self.fill_color:Optional[str] = None
+        self.fill_alpha:Optional[float] = 0.2
+        self.hatch:Optional[str] = 'xxx'
+        self.hatch_linewidth:Optional[float] = 0.5
+
         self.resample = False
         self.reaverage = False
         self.reaverage_cylindrical = False
@@ -272,6 +278,16 @@ class Plot:
         for x,y,label in zip(xs,ys,self.labels):
             line = ax.plot(x, y, label=label.replace('_', '-'))
             lines.extend(line)
+
+            if isinstance(self.fill, float):
+                ax.fill_between(x, y, self.fill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
+                plt.rcParams['hatch.linewidth'] = self.hatch_linewidth
+            elif isinstance(self.fill, str): 
+                xfill, yfill, _,_ = readfile(self.fill, columns = self.columns, header=self.header)
+                if xfill != x:
+                    raise NotImplementedError("Interpolation between curves for filling yet to be implemented!")
+                ax.fill_between(x, y, yfill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
+
         return lines
 
     def _plot_legend(self, ax, all_lines, legend=None):
