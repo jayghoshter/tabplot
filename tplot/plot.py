@@ -273,10 +273,10 @@ class Plot:
 
         return xs, ys
 
-    def _plot_data(self, ax, xs, ys):
+    def _plot_data(self, ax, xs, ys, labels):
         lines = []
-        for x,y,label in zip(xs,ys,self.labels):
-            line = ax.plot(x, y, label=label.replace('_', '-'))
+        for x,y,label,zorder in zip(xs,ys,labels, self.zorders):
+            line = ax.plot(x, y, label=label.replace('_', '-'), zorder=zorder )
             lines.extend(line)
 
             if isinstance(self.fill, float):
@@ -313,16 +313,18 @@ class Plot:
         self._setup_axes()
         self._setup_ticks()
 
+        labels_iter = iter(self.labels)
+
         # PROCESSING:
         xs, ys, = self._process_files(self.files)
-        lines = self._plot_data(self.ax, xs, ys)
+        lines = self._plot_data(self.ax, xs, ys, labels_iter)
 
         lines2 = []
         xs2 = []
         ys2 = []
         if self.twinx:
             xs2, ys2 = self._process_files(self.twinx)
-            lines2 = self._plot_data(self.ax2, xs2, ys2)
+            lines2 = self._plot_data(self.ax2, xs2, ys2, labels_iter)
 
         self.lines = lines + lines2
 
