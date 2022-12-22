@@ -110,13 +110,13 @@ class Plot:
         cmap = mpl.cm.get_cmap(name=self.colormap)
         if 'colors' in cmap.__dict__:
             # Discrete colormap
-            self.COLORS = cmap.colors[:n_total_files]
+            self.COLORS = cmap.colors
         else:
             # Continuous colormap
             self.COLORS = [cmap(1.*i/(n_total_files-1)) for i in range(n_total_files)]
 
         if self.line_color_indices:
-            self.line_color_indices = make_iterable(self.line_color_indices, 0, len(self.files), return_list = True)
+            self.line_color_indices = make_iterable(self.line_color_indices, 0, n_total_files, return_list = True)
             self.COLORS = [self.COLORS[i] for i in self.line_color_indices]
 
         self.color_cycler = cycler('color', self.COLORS)
@@ -146,7 +146,7 @@ class Plot:
 
     def _get_props_cycler(self):
         main_c =  cycler(
-            color           = list(self.COLORS),
+            color           = list(self.COLORS[:len(self.files + self.twinx)]),
             linestyle       = list(self.linestyles),
             linewidth       = list(self.linewidths),
             marker          = list(self.markers),
