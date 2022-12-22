@@ -97,9 +97,12 @@ class Plot:
         self.reaverage = False
         self.reaverage_cylindrical = False
 
-        self.header:bool = False
-        self.files:list = []
-        self.twinx:list = []
+        self.header            :bool           = False
+        self.files             :list           = []
+        self.columns           :Tuple[int,int] = (0,1)
+        self.xticks_column     :Optional[int]  = None
+        self.xticklabels_column:Optional[int]  = None
+        self.twinx             :list           = []
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -168,26 +171,39 @@ class Plot:
 
         return main_c
 
-    def _setup_ticks(self,):
+    def _setup_ticks(self, xticks=None, yticks=None, xtick_labels=None, ytick_labels=None):
         # TODO: Move away from global plt
+
+        if xticks is None:
+            xticks = self.xticks
+
+        if yticks is None: 
+            yticks = self.xticks
+
+        if xtick_labels is None:
+            xtick_labels = self.xtick_labels
+
+        if ytick_labels is None:
+            ytick_labels = self.ytick_labels
+
         xtx, xtl = plt.xticks()
 
-        if self.xticks:
-            xtx = self.xticks
+        if xticks:
+            xtx = xticks
         if self.xtick_labels:
-            xtl = self.xtick_labels
+            xtl = xtick_labels
 
-        if self.xticks or self.xtick_labels:
+        if xticks or xtick_labels:
             plt.xticks(xtx, xtl)
 
         ytx, ytl = plt.yticks()
 
-        if self.yticks:
-            ytx = self.yticks
-        if self.ytick_labels:
-            ytl = self.ytick_labels
+        if yticks:
+            ytx = yticks
+        if ytick_labels:
+            ytl = ytick_labels
 
-        if self.yticks or self.ytick_labels:
+        if yticks or ytick_labels:
             plt.yticks(ytx, ytl)
 
     def _setup_axes(self,):
@@ -235,7 +251,15 @@ class Plot:
             print(f"Plotting: {filename}")
 
             # TODO: Handle xticks and xticklabels from files
-            x, y, xticks, xticklabels = readfile(filename, columns=[0,1], header=self.header)
+            x, y, xticks, xticklabels = readfile(filename, 
+                                                 columns=self.columns, 
+                                                 header=self.header,
+                                                 xticksColumn=self.xticks_column,
+                                                 xticklabelsColumn=self.xticklabels_column
+                                                 )
+
+            if xticks or xticklabels:
+                self._setup_ticks(xticks = xticks, xtick_labels = xticklabels)
 
             if self.normalize_y:
                 y = normalize(y, self.normalize_y)
