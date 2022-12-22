@@ -136,7 +136,7 @@ class Plot:
         self.marker_face_colors = make_iterable(self.marker_face_colors, None   , n_total_files, return_list = True)
         self.marker_edge_colors = make_iterable(self.marker_edge_colors, None   , n_total_files, return_list = True)
 
-        self.zorder             = self.zorder or iter(range(1,n_total_files + 1))
+        self.zorders             = self.zorders or iter(np.linspace(0,1,n_total_files))
 
         # Create a cycler
         self.final_cycler = self._get_props_cycler()
