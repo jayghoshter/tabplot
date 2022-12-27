@@ -1,6 +1,7 @@
 from itertools import cycle, islice, repeat
-from subprocess import run
 import matplotlib as mpl
+from pathlib import Path
+import numpy as np
 
 def make_iterable(obj, default_value, default_length, return_list=True):
     """
@@ -21,65 +22,39 @@ def make_iterable(obj, default_value, default_length, return_list=True):
     else:
         return obj
 
-def readfile(data_path, columns=[0,1], header=False, xticksColumn=None, xticklabelsColumn=None):
-    """ Read x-y CSV-style files
-    """
-    if ':' in data_path:
-        run(['scp', '-rC', data_path, '/tmp/plotting.csv'])
-        data_path = '/tmp/plotting.csv'
+def readfile(data_path, delimiter=None, header=False):
+    if delimiter is None:
+        with open(data_path, newline='') as csvfile:
+            if ',' in csvfile.readline():
+                delimiter = ','
 
-    x = []
-    y = []
-    xticks = []
-    xticklabels = []
-    # columns = [0, 1]
-    delimiter = ' '
-    with open(data_path, newline='') as csvfile:
-        if ',' in csvfile.readline():
-            delimiter = ','
-    with open(data_path, newline='') as infile:
-        # data = list(csv.reader(infile))
-        if header:
-            print(infile.readline())
-        for line in infile:
-            data_line = line.strip().split(delimiter)
-            data_line = list(filter(None, data_line))
-            if (data_line != []):
-                if len(data_line) == 1:
-                    y.append(float(data_line[0]))
-                elif len(columns) == 1: 
-                    y.append(float(data_line[columns[0]]))
-                else:
-                    x.append(float(data_line[columns[0]]))
-                    y.append(float(data_line[columns[1]]))
-                # if columns[0] != -1:
-                #     x.append(float(data_line[columns[0]]))
-                # y.append(float(data_line[columns[1]]))
-                if xticksColumn is not None: 
-                    xticks.append(float(data_line[xticksColumn]))
-                if xticklabelsColumn is not None:
-                    xticklabels.append(data_line[xticklabelsColumn])
+    skiprows = 1 if header else 0
 
-    return x, y, xticks, xticklabels
+    # Whitespace delimiter
+    if delimiter is None: 
+        return np.loadtxt(data_path, dtype=object, skiprows=skiprows).T
+    else:
+        # Comma or specified
+        return np.loadtxt(data_path, dtype=object, delimiter=delimiter, skiprows=skiprows).T 
 
-def normalize(data, refValue=None):
+def normalize(data:np.ndarray, refValue=None):
     """ Normalize array to either max value or given refValue
     """
-    if refValue == 'self':
-        print("No reference value for normalization provided: Using max point of curve.")
-        refValue = max(data)
-    return [ x/float(refValue) for x in data ]
+    if not refValue:
+        refValue = data.max()
+    return data / refValue
 
-def scale_axis(vec:list, scale_factor_or_file):
+def scale_axis(vec:np.ndarray, scale_factor_or_file):
     """ Scale either the x or y axis of a given plot line
     """
-    if Path(scale_factor_or_file).expanduser().exists():
-        scale_factors = readArray(scale_factor_or_file)
-        vec = [ v*s for v,s in zip(vec, scale_factors)]
+    if isinstance(scale_factor_or_file, float) or isinstance(scale_factor_or_file, int) or isinstance(scale_factor_or_file, np.ndarray):
+        return vec * scale_factor_or_file
+    elif Path(scale_factor_or_file).expanduser().exists():
+        scale_factor = np.loadtxt(scale_factor_or_file)
+        return vec * scale_factor
     else: 
-        scale_factor = float(scale_factor_or_file)
-        vec = [ v * scale_factor for v in vec ]
-    return vec
+        print(f"No such scaling factor or data file: {scale_factor_or_file}")
+        return vec
 
 def cmap_colors_to_hex(cmap_colors): 
     # USAGE: cmap_colors_to_hex(plt.cm.tab10.colors)

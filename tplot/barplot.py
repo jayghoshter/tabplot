@@ -6,10 +6,10 @@ class BarPlot(Plot):
 
         self.bar_width = 0.25
 
-    def _plot_data(self, ax, xs, ys):
+    def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
         bar_count = 0
-        for x,y,label in zip(xs,ys,self.labels):
+        for x,y,label in zip(xs,ys, labels):
             indices = list(range(1,len(y)+1))
             num_files = len(xs)
             width = self.bar_width

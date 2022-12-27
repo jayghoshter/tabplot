@@ -2,9 +2,9 @@ from tplot.utils import make_iterable
 from tplot.utils import readfile
 from tplot.utils import normalize
 from tplot.utils import scale_axis
-
 from tplot.postprocessing import fit_lines
 from tplot.postprocessing import extrapolate
+from rich import print
 
 from matplotlib import pyplot as plt
 import matplotlib as mpl
@@ -12,8 +12,9 @@ from cycler import cycler
 import numpy as np
 from scipy.interpolate import make_interp_spline, BSpline
 from collections.abc import Iterable
+from pathlib import Path
 
-from typing import Any, Optional, Tuple, Sequence
+from typing import Optional, Tuple
 
 class Plot:
 
@@ -35,10 +36,10 @@ class Plot:
         self.reverse_y:bool = False
 
         # Ticks
-        self.xticks      :list = []
-        self.yticks      :list = []
-        self.xtick_labels:list = []
-        self.ytick_labels:list = []
+        self.xticks      :np.ndarray|list[float] = np.array([])
+        self.yticks      :np.ndarray|list[float] = np.array([])
+        self.xtick_labels:np.ndarray|list[str] = np.array([])
+        self.ytick_labels:np.ndarray|list[int] = np.array([])
         self.xlog        :bool = False
         self.ylog        :bool = False
 
@@ -47,8 +48,6 @@ class Plot:
 
         self.linestyles          :str|Iterable[str]     = []
         self.linewidths          :float|Iterable[float] = []
-        self.labels              :str|Iterable[str]     = []
-        self.zorders             :float|Iterable[float] = []
         self.markers             :str|Iterable[str]     = []
         self.markersize          :float|Iterable[float] = []
         self.marker_face_colors  :str|Iterable[str]     = []
@@ -57,8 +56,10 @@ class Plot:
         self.line_color_indices  :int|Iterable[int]     = []
         self.line_color_indices_2:int|Iterable[int]     = []
 
+        self.style:list[str] = ['science']
         self.colormap:str = 'tab10'
 
+        self.show_legend   :bool                             = True
         self.legend        :Tuple[str, str|float, str|float] = ('upper center', '0.5', '-0.2')
         self.legend_frameon:bool                             = False
         self.legend_size   :str                              = 'medium'
@@ -69,13 +70,11 @@ class Plot:
         self.smoothen_npoints:int = 250
         self.normalize_y:Optional[bool|str|float] = None
         self.normalize_x:Optional[bool|str|float] = None
-        self.xscale:Optional[float] = None
-        self.yscale:Optional[float] = None
+        self.xscale:Optional[float|np.ndarray|Path] = None
+        self.yscale:Optional[float|np.ndarray|Path] = None
         self.extrapolate:Optional[str] = None
         self.xlogify:bool = False
         self.ylogify:bool = False
-
-        self.style:list[str] = ['science']
 
         self.y2label:str = ''
         self.y2lims :Optional[Tuple[float,float]] = None
@@ -93,16 +92,23 @@ class Plot:
         self.hatch:Optional[str] = 'xxx'
         self.hatch_linewidth:Optional[float] = 0.5
 
+        # TODO: Cleanup
         self.resample = False
         self.reaverage = False
         self.reaverage_cylindrical = False
 
         self.header            :bool           = False
-        self.files             :list           = []
         self.columns           :Tuple[int,int] = (0,1)
         self.xticks_column     :Optional[int]  = None
         self.xticklabels_column:Optional[int]  = None
-        self.twinx             :list           = []
+
+        self.files    :list                  = []
+        self.twinx    :list                  = []
+        self._labels  :str|Iterable[str]     = []
+        self._zorders :Iterable[float] = []
+
+        # Store ndarray data from all files (including twinx)
+        self.file_data_list = []
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -111,6 +117,29 @@ class Plot:
         for key, value in data.items():
             setattr(self, key, value)
         return self
+
+
+    @property
+    def labels(self):
+        if self._labels: 
+            if len(self._labels) == len(self.files + self.twinx): 
+                return self._labels
+        return self.files + self.twinx
+
+    @labels.setter
+    def labels(self, value):
+        self._labels = value
+
+    @property
+    def zorders(self):
+        if self._zorders:
+            if len(self._zorders) == len(self.files + self.twinx):
+                return self._zorders
+        return np.linspace(0,1,len(self.files + self.twinx))
+
+    @zorders.setter
+    def zorders(self, value):
+        self._zorders= value
 
     def _update_params(self):
 
@@ -128,14 +157,6 @@ class Plot:
             self.line_color_indices = make_iterable(self.line_color_indices, 0, n_total_files, return_list = True)
             self.COLORS = [self.COLORS[i] for i in self.line_color_indices]
 
-        self.color_cycler = cycler('color', self.COLORS)
-        self.color_cycler2 = cycler('color', self.COLORS[len(self.files):] + self.COLORS[:len(self.files)])
-
-        if not self.labels:
-            self.labels = self.files + self.twinx
-        else:
-            self.labels = list(self.labels)
-
         # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
         self.linewidths         = make_iterable(self.linewidths        , 1      , n_total_files, return_list = True)
@@ -144,8 +165,6 @@ class Plot:
         self.marker_edge_widths = make_iterable(self.marker_edge_widths, 1.0    , n_total_files, return_list = True)
         self.marker_face_colors = make_iterable(self.marker_face_colors, None   , n_total_files, return_list = True)
         self.marker_edge_colors = make_iterable(self.marker_edge_colors, None   , n_total_files, return_list = True)
-
-        self.zorders             = self.zorders or iter(np.linspace(0,1,n_total_files))
 
         # Create a cycler
         self.final_cycler = self._get_props_cycler()
@@ -172,13 +191,11 @@ class Plot:
         return main_c
 
     def _setup_ticks(self, xticks=None, yticks=None, xtick_labels=None, ytick_labels=None):
-        # TODO: Move away from global plt
-
         if xticks is None:
             xticks = self.xticks
 
         if yticks is None: 
-            yticks = self.xticks
+            yticks = self.yticks
 
         if xtick_labels is None:
             xtick_labels = self.xtick_labels
@@ -188,22 +205,22 @@ class Plot:
 
         xtx, xtl = plt.xticks()
 
-        if xticks:
+        if len(xticks):
             xtx = xticks
-        if self.xtick_labels:
+        if len(xtick_labels):
             xtl = xtick_labels
 
-        if xticks or xtick_labels:
+        if len(xticks) or len(xtick_labels):
             plt.xticks(xtx, xtl)
 
         ytx, ytl = plt.yticks()
 
-        if yticks:
+        if len(yticks):
             ytx = yticks
-        if ytick_labels:
+        if len(ytick_labels):
             ytl = ytick_labels
 
-        if yticks or ytick_labels:
+        if len(yticks) or len(ytick_labels):
             plt.yticks(ytx, ytl)
 
     def _setup_axes(self,):
@@ -245,31 +262,29 @@ class Plot:
         xs = []
         ys = []
 
-        bar_count = 0
-
         for filename in files:
-            print(f"Plotting: {filename}")
 
-            # TODO: Handle xticks and xticklabels from files
-            x, y, xticks, xticklabels = readfile(filename, 
-                                                 columns=self.columns, 
-                                                 header=self.header,
-                                                 xticksColumn=self.xticks_column,
-                                                 xticklabelsColumn=self.xticklabels_column
-                                                 )
+            file_data = readfile(filename, header=self.header)
+            self.file_data_list.append(file_data)
 
-            if xticks or xticklabels:
-                self._setup_ticks(xticks = xticks, xtick_labels = xticklabels)
+            if file_data.ndim == 1:
+                x = np.array([])
+                y = file_data.astype('float64') if self.columns[1] != -1 else np.array([])
+            else:
+                x = file_data[self.columns[0]].astype('float64') if self.columns[0] != -1 else np.array([])
+                y = file_data[self.columns[1]].astype('float64') if self.columns[1] != -1 else np.array([])
+                xticks = file_data[self.xticks_column].astype('float64') if self.xticks_column is not None else np.array([])
+                xticklabels = file_data[self.xticklabels_column] if self.xticks_column is not None else np.array([])
+
+                if len(xticks) or len(xticklabels):
+                    self._setup_ticks(xticks = xticks, xtick_labels = xticklabels)
 
             if self.normalize_y:
                 y = normalize(y, self.normalize_y)
             if self.normalize_x:
                 x = normalize(x, self.normalize_x)
 
-            # TODO: Allow this to be specified per plot line
             if self.xscale:
-                if x == []:
-                    x = [1] * len(y)
                 x = scale_axis(x, self.xscale)
             if self.yscale:
                 y = scale_axis(y, self.yscale)
@@ -297,9 +312,9 @@ class Plot:
 
         return xs, ys
 
-    def _plot_data(self, ax, xs, ys, labels):
+    def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
-        for x,y,label,zorder in zip(xs,ys,labels, self.zorders):
+        for x,y,label,zorder in zip(xs,ys,labels, zorders):
             line = ax.plot(x, y, label=label.replace('_', '-'), zorder=zorder )
             lines.extend(line)
 
@@ -307,7 +322,7 @@ class Plot:
                 ax.fill_between(x, y, self.fill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
                 plt.rcParams['hatch.linewidth'] = self.hatch_linewidth
             elif isinstance(self.fill, str): 
-                xfill, yfill, _,_ = readfile(self.fill, columns = self.columns, header=self.header)
+                xfill, yfill = readfile(self.fill)
                 if xfill != x:
                     raise NotImplementedError("Interpolation between curves for filling yet to be implemented!")
                 ax.fill_between(x, y, yfill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
@@ -338,21 +353,23 @@ class Plot:
         self._setup_ticks()
 
         labels_iter = iter(self.labels)
+        zorders_iter = iter(self.zorders)
 
         # PROCESSING:
+        print(f"Processing files: {self.files}")
         xs, ys, = self._process_files(self.files)
-        lines = self._plot_data(self.ax, xs, ys, labels_iter)
+        lines = self._plot_data(self.ax, xs, ys, labels_iter, zorders_iter)
 
         lines2 = []
         xs2 = []
         ys2 = []
         if self.twinx:
             xs2, ys2 = self._process_files(self.twinx)
-            lines2 = self._plot_data(self.ax2, xs2, ys2, labels_iter)
+            lines2 = self._plot_data(self.ax2, xs2, ys2, labels_iter, zorders_iter)
 
         self.lines = lines + lines2
 
-        if self.legend:
+        if self.show_legend:
             self._plot_legend(self.ax, self.lines)
 
         # POSTPROCESSING:
@@ -396,3 +413,6 @@ class Plot:
     def __rich_repr__(self):
         yield self.files
         yield "files", self.files
+
+    def __del__(self):
+        plt.close(self.fig)
