@@ -110,6 +110,9 @@ class Plot:
         # Store ndarray data from all files (including twinx)
         self.file_data_list = []
 
+        self.pointwise_annotation_padding: Optional[list[Tuple[float,float]]] = None
+        self.pointwise_annotation_labels_column: Optional[int] = None
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -381,6 +384,17 @@ class Plot:
 
         if self.extrapolate:
             extrapolate(self.ax, xs, ys, self.extrapolate)
+
+        if self.pointwise_annotation_labels_column is not None:
+            padding_iter = iter(self.pointwise_annotation_padding)
+            for x, y, file_data in zip(xs + xs2, ys + ys2, self.file_data_list):
+                annots = iter(file_data[self.pointwise_annotation_labels_column])
+                for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
+                    xlims = self.ax.get_xlim()
+                    x_pad = (xlims[1] - xlims[0]) * xypads[0]
+                    ylims = self.ax.get_ylim()
+                    y_pad = (ylims[1] - ylims[0]) * xypads[0]
+                    self.ax.annotate(annot, (xi + x_pad, yi + y_pad))
 
         # hlines and vlines are plotted at the end so that xlims and ylims are
         # not later modified by further plotting
