@@ -2,6 +2,8 @@ from itertools import cycle, islice, repeat
 import matplotlib as mpl
 from pathlib import Path
 import numpy as np
+from scipy.interpolate import make_interp_spline, BSpline
+import numexpr as ne
 
 def make_iterable(obj, default_value, default_length, return_list=True):
     """
@@ -59,3 +61,36 @@ def scale_axis(vec:np.ndarray, scale_factor_or_file):
 def cmap_colors_to_hex(cmap_colors): 
     # USAGE: cmap_colors_to_hex(plt.cm.tab10.colors)
     return list(map(lambda x: mpl.colors.rgb2hex(x), cmap_colors))
+
+def xsort(x:np.ndarray, y:np.ndarray):
+    ordering = x.argsort()
+    x = x[ordering]
+    y = y[ordering]
+    return x, y
+
+def trim(x:np.ndarray, y:np.ndarray, condition:str):
+    mask = ne.evaluate(condition)
+    indices = np.where(mask)
+    x = x[indices]
+    y = y[indices]
+    return x, y
+
+def strim(xs:list[np.ndarray], ys:list[np.ndarray], condition:str):
+    xs, ys = zip(*map(trim, xs, ys, repeat(condition)))
+    return xs, ys
+
+def xssort(xs:list[np.ndarray], ys:list[np.ndarray]):
+    xs, ys = zip(*map(xsort, xs, ys))
+    return xs, ys
+
+def smoothen_xys(xs, ys, order=3, npoints=250):
+    new_xs = []
+    new_ys = []
+    for x, y in zip(xs, ys): 
+        xsmooth = np.linspace(min(x), max(x), npoints)
+        x,y = xsort(x,y)
+        spl = make_interp_spline(x, y, k=order)  # type: BSpline
+        ysmooth = spl(xsmooth)
+        new_xs.append(xsmooth)
+        new_ys.append(ysmooth) 
+    return new_xs, new_ys

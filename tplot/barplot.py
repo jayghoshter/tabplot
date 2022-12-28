@@ -2,12 +2,9 @@ from tplot import Plot
 
 class BarPlot(Plot):
     def __init__(self, **kwargs) -> None:
+        self.bar_width = 0.25
         super().__init__(**kwargs)
 
-        self.bar_width = 0.25
-
-        for key, value in kwargs.items():
-            setattr(self, key, value)
 
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []

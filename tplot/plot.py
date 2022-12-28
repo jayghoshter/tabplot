@@ -2,6 +2,8 @@ from tplot.utils import make_iterable
 from tplot.utils import readfile
 from tplot.utils import normalize
 from tplot.utils import scale_axis
+from tplot.utils import smoothen_xys
+from tplot.utils import strim
 from tplot.postprocessing import fit_lines
 from tplot.postprocessing import extrapolate
 from rich import print
@@ -78,35 +80,6 @@ class Plot:
         self.hatch:Optional[str] = 'xxx'
         self.hatch_linewidth:Optional[float] = 0.5
 
-        # Transforms
-        # TODO: Convert these into methods
-        self.smoothen_order:Optional[int] = None
-        self.smoothen_npoints:int = 250
-        self.normalize_y:Optional[bool|str|float] = None
-        self.normalize_x:Optional[bool|str|float] = None
-        self.xscale:Optional[float|np.ndarray|Path] = None
-        self.yscale:Optional[float|np.ndarray|Path] = None
-        self.extrapolate:Optional[str] = None
-        self.xlogify:bool = False
-        self.ylogify:bool = False
-
-        # Addins
-        # TODO: These too
-        self.hlines:list[float] = []
-        self.vlines:list[float] = []
-        self.fit_lines:bool = False
-
-        # TODO: Cleanup
-        self.resample = False
-        self.reaverage = False
-        self.reaverage_cylindrical = False
-
-        # File data parameters and dependents
-        self.header            :bool           = False
-        self.columns           :Tuple[int,int] = (0,1)
-        self.xticks_column     :Optional[int]  = None
-        self.xticklabels_column:Optional[int]  = None
-
         self.files    :list                  = []
         self.twinx    :list                  = []
         self._labels  :str|Iterable[str]     = []
@@ -115,17 +88,46 @@ class Plot:
         # Store ndarray data from all files (including twinx)
         self.file_data_list = []
 
-        self.pointwise_annotation_padding: Optional[list[Tuple[float,float]]] = None
-        self.pointwise_annotation_labels_column: Optional[int] = None
+        self.xs :list[np.ndarray] = []
+        self.ys :list[np.ndarray] = []
+        self.x2s :list[np.ndarray] = []
+        self.y2s :list[np.ndarray] = []
+
+        self.fig = None
+        self.ax  = None
+        self.ax2 = None
 
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            if key in self.__dict__: 
+                setattr(self, key, value)
+            # elif key in [attribute for attribute in dir(self.__class__) if callable(getattr(self.__class__, attribute)) and attribute.startswith('__') is False]:
+            #     pass
+            elif key in [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]:
+                setattr(self, key, value)
+            else: 
+                # methods = [attribute for attribute in dir(self.__class__) if callable(getattr(self.__class__, attribute)) and attribute.startswith('__') is False]
+                # property_names= [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]
+                # print(property_names)
+                raise NameError(f"No such attribute: {key}")
 
-    def fromdict(self, data:dict):
-        for key, value in data.items():
-            setattr(self, key, value)
+    def setup(self, clean:bool = True):
+
+        self._update_params()
+
+        plt.style.use(self.style)
+
+        if not self.fig: 
+            self.fig, self.ax = plt.subplots(figsize=self.figsize)
+        else: 
+            if clean: 
+                self.ax.cla()
+                if self.ax2: 
+                    self.ax2.cla()
+
+        self._setup_axes()
+        self._setup_ticks()
+
         return self
-
 
     @property
     def labels(self):
@@ -156,14 +158,14 @@ class Plot:
         cmap = mpl.cm.get_cmap(name=self.colormap)
         if 'colors' in cmap.__dict__:
             # Discrete colormap
-            self.COLORS = cmap.colors
+            self.colors = cmap.colors
         else:
             # Continuous colormap
-            self.COLORS = [cmap(1.*i/(n_total_files-1)) for i in range(n_total_files)]
+            self.colors = [cmap(1.*i/(n_total_files-1)) for i in range(n_total_files)]
 
         if self.line_color_indices:
             self.line_color_indices = make_iterable(self.line_color_indices, 0, n_total_files, return_list = True)
-            self.COLORS = [self.COLORS[i] for i in self.line_color_indices]
+            self.colors = [self.colors[i] for i in self.line_color_indices]
 
         # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
@@ -182,7 +184,7 @@ class Plot:
 
     def _get_props_cycler(self):
         main_c =  cycler(
-            color           = list(self.COLORS[:len(self.files + self.twinx)]),
+            color           = list(self.colors[:len(self.files + self.twinx)]),
             linestyle       = list(self.linestyles),
             linewidth       = list(self.linewidths),
             marker          = list(self.markers),
@@ -233,7 +235,7 @@ class Plot:
 
     def _setup_axes(self,):
         ax = self.ax
-        ax.set_prop_cycle(self.final_cycler)
+        self.ax.set_prop_cycle(self.final_cycler)
 
         ax.set(title = self.title)
         ax.set(xlabel = self.xlabel)
@@ -255,8 +257,8 @@ class Plot:
 
         if self.twinx:
             self.ax2 = ax.twinx()
+            self.ax2.set_prop_cycle(self.final_cycler2)
             ax2 = self.ax2
-            ax2.set_prop_cycle(self.final_cycler2)
             ax2 = self.ax2
             ax2.set(ylabel=self.y2label)
 
@@ -266,59 +268,122 @@ class Plot:
             if self.y2lims:
                 ax2.set_ylim(self.y2lims)
 
-    def _process_files(self, files):
-        xs = []
-        ys = []
+        if self.reverse_x:
+            xlim = self.ax.get_xlim()
+            self.ax.set_xlim((xlim[1], xlim[0]))
+
+        if self.reverse_y:
+            ylim = self.ax.get_ylim()
+            self.ax.set_ylim((ylim[1], ylim[0]))
+
+    def read(self, 
+             header            :bool           = False,
+             columns           :Tuple[int,int] = (0,1),
+             xticks_column     :Optional[int]  = None,
+             xticklabels_column:Optional[int]  = None, ):
+
+        file_data_list = self._read_files(self.files, header)
+        self.xs, self.ys = self._extract_coordinate_data(file_data_list, columns)
+        self._process_tick_data(file_data_list, xticks_column, xticklabels_column)
+
+        file_data_list_2 = self._read_files(self.twinx, header)
+        self.x2s, self.y2s = self._extract_coordinate_data(file_data_list_2, columns)
+        self._process_tick_data(file_data_list_2, xticks_column, xticklabels_column)
+
+        self.file_data_list = file_data_list + file_data_list_2
+
+        return self
+
+    def normalize_y(self, refValue=None):
+        self.ys = list(map(lambda y: normalize(y, refValue), self.ys))
+        self.y2s = list(map(lambda y: normalize(y, refValue), self.y2s))
+        return self
+
+    def normalize_x(self, refValue=None):
+        self.xs = list(map(lambda x: normalize(x, refValue), self.xs))
+        self.x2s = list(map(lambda x: normalize(x, refValue), self.x2s))
+        return self
+
+    def normalize_xy(self, refx=None, refy=None):
+        self.normalize_x(refx)
+        self.normalize_y(refy)
+        return self
+
+    def smoothen(self, order=3, npoints=250):
+        self.xs, self.ys = smoothen_xys(self.xs, self.ys, order, npoints)
+        self.x2s, self.y2s = smoothen_xys(self.x2s, self.y2s, order, npoints)
+        return self
+
+    def scale(self, x=1, y=1):
+        self.xs = list(map(lambda z: scale_axis(z, x), self.xs))
+        self.ys = list(map(lambda z: scale_axis(z, y), self.ys))
+        self.x2s = list(map(lambda z: scale_axis(z, x), self.x2s))
+        self.y2s = list(map(lambda z: scale_axis(z, y), self.y2s))
+        return self
+
+    # TODO: implement xlogify
+
+    def trim(self, condition:str):
+        """
+        Given a condition such as x<0.5, y>0.6 etc,
+        "trims" the xs, and ys data to the given condition
+        - Only one condition is applied to ALL the lines
+        """
+        self.xs, self.ys = strim(self.xs, self.ys, condition)
+        return self
+
+    def _read_files(self,
+                    files             :list[Path],
+                    header            :bool           = False,):
+
+        """
+        - Read a list of files
+        - Save the data array
+        - Return xs, ys, xticks, and xticklabels
+        """
+
+        file_data_list = []
 
         for filename in files:
 
-            file_data = readfile(filename, header=self.header)
-            self.file_data_list.append(file_data)
+            file_data = readfile(filename, header=header)
+            file_data_list.append(file_data)
 
+        return file_data_list
+
+
+    def _extract_coordinate_data(self,
+                                 file_data_list,
+                                 columns           :Tuple[int,int] = (0,1),
+                                 ):
+
+        xs = []
+        ys = []
+        for file_data in file_data_list:
             if file_data.ndim == 1:
                 x = np.array([])
-                y = file_data.astype('float64') if self.columns[1] != -1 else np.array([])
+                y = file_data.astype('float64') if columns[1] != -1 else np.array([])
             else:
-                x = file_data[self.columns[0]].astype('float64') if self.columns[0] != -1 else np.array([])
-                y = file_data[self.columns[1]].astype('float64') if self.columns[1] != -1 else np.array([])
-                xticks = file_data[self.xticks_column].astype('float64') if self.xticks_column is not None else np.array([])
-                xticklabels = file_data[self.xticklabels_column] if self.xticks_column is not None else np.array([])
-
-                if len(xticks) or len(xticklabels):
-                    self._setup_ticks(xticks = xticks, xtick_labels = xticklabels)
-
-            if self.normalize_y:
-                y = normalize(y, self.normalize_y)
-            if self.normalize_x:
-                x = normalize(x, self.normalize_x)
-
-            if self.xscale:
-                x = scale_axis(x, self.xscale)
-            if self.yscale:
-                y = scale_axis(y, self.yscale)
-
-            # Unlike --xlog and --ylog, these actually scale the data
-            if self.xlogify:
-                x = np.log10(x)
-            if self.ylogify:
-                y = np.log10(y)
-
-            if self.smoothen_order:
-                xsmooth = np.linspace(min(x), max(x), self.smoothen_npoints)
-                x_new = np.array(x)
-                y_new = np.array(y)
-                ordering = x_new.argsort()
-                x_new = x_new[ordering]
-                y_new = y_new[ordering]
-                spl = make_interp_spline(x_new, y_new, k=self.smoothen_order)  # type: BSpline
-                ysmooth = spl(xsmooth)
-                x = xsmooth
-                y = ysmooth
+                x = file_data[columns[0]].astype('float64') if columns[0] != -1 else np.array([])
+                y = file_data[columns[1]].astype('float64') if columns[1] != -1 else np.array([])
 
             xs.append(x)
             ys.append(y)
 
         return xs, ys
+
+    def _process_tick_data(self, 
+                           file_data_list,
+                           xticks_column     :Optional[int]  = None,
+                           xticklabels_column:Optional[int]  = None, ):
+        for file_data in file_data_list:
+            # If we have more than just y-data
+            if file_data.ndim > 1:
+                xticks = file_data[xticks_column].astype('float64') if xticks_column is not None else np.array([])
+                xticklabels = file_data[xticklabels_column] if xticks_column is not None else np.array([])
+
+                if len(xticks) or len(xticklabels):
+                    self._setup_ticks(xticks = xticks, xtick_labels = xticklabels)
 
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
@@ -349,73 +414,72 @@ class Plot:
                   fontsize=self.legend_size,
                   ncol=self.legend_ncol)
 
-    def generate(self,):
+    def fit_lines(self, xlog=False, ylog=False, **kwargs): 
+        fit_lines(self.ax, self.xs, self.ys, xlog, ylog, **kwargs)
+
+        if self.twinx:
+            fit_lines(self.ax2, self.x2s, self.y2s, xlog, ylog, **kwargs)
+        return self
+
+    def extrapolate(self, kind='linear'):
+        extrapolate(self.ax, self.xs, self.ys, kind)
+        if self.twinx: 
+            extrapolate(self.ax2, self.x2s, self.y2s, kind)
+        return self
+
+    def annotate_pointwise(self, labels_column:int, paddings:list[Tuple[float,float]]):
+        padding_iter = iter(paddings)
+        file_data_iter = iter(self.file_data_list)
+        for x, y, file_data in zip(self.xs, self.ys, file_data_iter):
+            annots = iter(file_data[labels_column])
+            for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
+                xlims = self.ax.get_xlim()
+                x_pad = (xlims[1] - xlims[0]) * xypads[0]
+                ylims = self.ax.get_ylim()
+                y_pad = (ylims[1] - ylims[0]) * xypads[0]
+                self.ax.annotate(annot, (xi + x_pad, yi + y_pad))
+
+        for x, y, file_data in zip(self.x2s, self.y2s, file_data_iter):
+            annots = iter(file_data[labels_column])
+            for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
+                xlims = self.ax.get_xlim()
+                x_pad = (xlims[1] - xlims[0]) * xypads[0]
+                ylims = self.ax.get_ylim()
+                y_pad = (ylims[1] - ylims[0]) * xypads[0]
+                self.ax2.annotate(annot, (xi + x_pad, yi + y_pad))
+
+        return self
+
+    def hlines(self, yvals):
+        xlim = self.ax.get_xlim()
+        self.ax.hlines(yvals, xlim[0], xlim[1])
+        return self
+
+    def vlines(self, xvals):
+        ylim = self.ax.get_ylim()
+        self.ax.vlines(xvals, ylim[0], ylim[1])
+        return self
+
+    def draw(self, clean:bool = True):
         # PREPROCESSING:
-        self._update_params()
 
-        plt.style.use(self.style)
-
-        self.fig, self.ax = plt.subplots(figsize=self.figsize)
-
-        self._setup_axes()
-        self._setup_ticks()
+        self.setup(clean)
 
         labels_iter = iter(self.labels)
         zorders_iter = iter(self.zorders)
 
         # PROCESSING:
         print(f"Processing files: {self.files}")
-        xs, ys, = self._process_files(self.files)
-        lines = self._plot_data(self.ax, xs, ys, labels_iter, zorders_iter)
+        lines = self._plot_data(self.ax, self.xs, self.ys, labels_iter, zorders_iter)
 
         lines2 = []
-        xs2 = []
-        ys2 = []
         if self.twinx:
-            xs2, ys2 = self._process_files(self.twinx)
-            lines2 = self._plot_data(self.ax2, xs2, ys2, labels_iter, zorders_iter)
+            lines2 = self._plot_data(self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter)
 
         self.lines = lines + lines2
 
         if self.show_legend:
             self._plot_legend(self.ax, self.lines)
-
-        # POSTPROCESSING:
-        if self.fit_lines:
-            fit_lines(self.ax, xs, ys, self.xlog, self.ylog)
-
-            if self.twinx:
-                fit_lines(self.ax2, xs2, ys2, self.xlog, self.ylog)
-
-        if self.extrapolate:
-            extrapolate(self.ax, xs, ys, self.extrapolate)
-
-        if self.pointwise_annotation_labels_column is not None:
-            padding_iter = iter(self.pointwise_annotation_padding)
-            for x, y, file_data in zip(xs + xs2, ys + ys2, self.file_data_list):
-                annots = iter(file_data[self.pointwise_annotation_labels_column])
-                for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
-                    xlims = self.ax.get_xlim()
-                    x_pad = (xlims[1] - xlims[0]) * xypads[0]
-                    ylims = self.ax.get_ylim()
-                    y_pad = (ylims[1] - ylims[0]) * xypads[0]
-                    self.ax.annotate(annot, (xi + x_pad, yi + y_pad))
-
-        # hlines and vlines are plotted at the end so that xlims and ylims are
-        # not later modified by further plotting
-        xlim = self.ax.get_xlim()
-        self.ax.hlines(self.hlines, xlim[0], xlim[1])
-
-        ylim = self.ax.get_ylim()
-        self.ax.vlines(self.vlines, ylim[0], ylim[1])
-
-        if self.reverse_x:
-            xlim = self.ax.get_xlim()
-            self.ax.set_xlim((xlim[1], xlim[0]))
-
-        if self.reverse_y:
-            ylim = self.ax.get_ylim()
-            self.ax.set_ylim((ylim[1], ylim[0]))
 
         return self
 
@@ -423,10 +487,11 @@ class Plot:
         # Default legend position of below the plot doesn't show on frontend
         self._plot_legend(self.ax, self.lines, ('upper left', 0, 1))
         plt.show()
-        return self
+        # return self
 
     def save(self, filename):
         self.fig.savefig(filename, dpi=300)
+        print(f"Saved as {filename}\n")
         return self
 
     def __rich_repr__(self):

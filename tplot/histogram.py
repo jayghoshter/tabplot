@@ -2,12 +2,8 @@ from tplot import Plot
 
 class Histogram(Plot):
     def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-
         self.bins:int = 20
-
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        super().__init__(**kwargs)
 
         self.columns = (-1,0)
 
