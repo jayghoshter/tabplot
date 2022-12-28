@@ -84,6 +84,7 @@ class Plot:
         self.twinx    :list                  = []
         self._labels  :str|Iterable[str]     = []
         self._zorders :Iterable[float]       = []
+        self._destdir = Path('.')
 
         # Store ndarray data from all files (including twinx)
         self.file_data_list = []
@@ -109,6 +110,14 @@ class Plot:
                 # property_names= [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]
                 # print(property_names)
                 raise NameError(f"No such attribute: {key}")
+
+    @property
+    def destdir(self):
+        return self._destdir
+
+    @destdir.setter
+    def destdir(self, value):
+        self._destdir = Path(value)
 
     def setup(self, clean:bool = True):
 
@@ -489,9 +498,16 @@ class Plot:
         plt.show()
         # return self
 
-    def save(self, filename):
-        self.fig.savefig(filename, dpi=300)
-        print(f"Saved as {filename}\n")
+    def save(self, filename, destdir=None):
+        if destdir is None:
+            destdir = self.destdir
+        else: 
+            destdir = Path(destdir)
+
+        destdir.mkdir(exist_ok=True)
+
+        self.fig.savefig(destdir / filename, dpi=300)
+        print(f"Saved as {destdir / filename}\n")
         return self
 
     def __rich_repr__(self):
