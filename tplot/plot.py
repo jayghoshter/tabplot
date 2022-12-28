@@ -65,7 +65,21 @@ class Plot:
         self.legend_size   :str                              = 'medium'
         self.legend_ncol   :int                              = 1
 
+        # Twinx attributes
+        self.y2label:str = ''
+        self.y2lims :Optional[Tuple[float,float]] = None
+        self.y2log:bool = False
+        self.colormap2:str = 'tab10'
+
+        # Filling and hatching
+        self.fill:Optional[float|str] = None
+        self.fill_color:Optional[str] = None
+        self.fill_alpha:Optional[float] = 0.2
+        self.hatch:Optional[str] = 'xxx'
+        self.hatch_linewidth:Optional[float] = 0.5
+
         # Transforms
+        # TODO: Convert these into methods
         self.smoothen_order:Optional[int] = None
         self.smoothen_npoints:int = 250
         self.normalize_y:Optional[bool|str|float] = None
@@ -76,27 +90,18 @@ class Plot:
         self.xlogify:bool = False
         self.ylogify:bool = False
 
-        self.y2label:str = ''
-        self.y2lims :Optional[Tuple[float,float]] = None
-        self.y2log:bool = False
-        self.colormap2:str = 'tab10'
-
         # Addins
+        # TODO: These too
         self.hlines:list[float] = []
         self.vlines:list[float] = []
         self.fit_lines:bool = False
-
-        self.fill:Optional[float|str] = None
-        self.fill_color:Optional[str] = None
-        self.fill_alpha:Optional[float] = 0.2
-        self.hatch:Optional[str] = 'xxx'
-        self.hatch_linewidth:Optional[float] = 0.5
 
         # TODO: Cleanup
         self.resample = False
         self.reaverage = False
         self.reaverage_cylindrical = False
 
+        # File data parameters and dependents
         self.header            :bool           = False
         self.columns           :Tuple[int,int] = (0,1)
         self.xticks_column     :Optional[int]  = None
@@ -105,7 +110,7 @@ class Plot:
         self.files    :list                  = []
         self.twinx    :list                  = []
         self._labels  :str|Iterable[str]     = []
-        self._zorders :Iterable[float] = []
+        self._zorders :Iterable[float]       = []
 
         # Store ndarray data from all files (including twinx)
         self.file_data_list = []
