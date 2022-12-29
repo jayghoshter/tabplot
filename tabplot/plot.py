@@ -50,13 +50,14 @@ class Plot:
         # TODO: 
         self.show_axis:bool = True
 
-        self.linestyles          :str|Iterable[str]     = []
-        self.linewidths          :float|Iterable[float] = []
-        self.markers             :str|Iterable[str]     = []
-        self.markersize          :float|Iterable[float] = []
-        self.marker_face_colors  :str|Iterable[str]     = []
-        self.marker_edge_colors  :str|Iterable[str]     = []
-        self.marker_edge_widths  :float|Iterable        = []
+        self._linestyles           :str|Iterable[str]     = []
+        self._linewidths           :float|Iterable[float] = []
+        self._markers              :str|Iterable[str]     = []
+        self._markersizes          :float|Iterable[float] = []
+        self._markerfacecolors     :str|Iterable[str]     = []
+        self._markeredgecolors     :str|Iterable[str]     = []
+        self._markeredgewidths     :float|Iterable        = []
+
         self.line_color_indices  :int|Iterable[int]     = []
         self.line_color_indices_2:int|Iterable[int]     = []
 
@@ -160,6 +161,67 @@ class Plot:
     def zorders(self, value):
         self._zorders= value
 
+    @property
+    def n_total_files(self):
+        return len(self.files) + len(self.twinx)
+
+    @property
+    def linestyles(self):
+        return make_iterable(self._linestyles, 'solid', self.n_total_files, return_list = True)
+
+    @linestyles.setter
+    def linestyles(self, value):
+        self._linestyles = value 
+
+    @property
+    def linewidths(self):
+        return make_iterable(self._linewidths, 1, self.n_total_files, return_list = True)
+
+    @linewidths.setter
+    def linewidths(self, value):
+        self._linewidths = value 
+        
+    @property
+    def markers(self):
+        return make_iterable(self._markers, None, self.n_total_files, return_list = True)
+
+    @markers.setter
+    def markers(self, value):
+        self._markers = value 
+
+    @property
+    def markersizes(self):
+        return make_iterable(self._markersizes, 4.0, self.n_total_files, return_list = True)
+
+    @markersizes.setter
+    def markersizes(self, value):
+        self._markersizes = value 
+
+    @property
+    def markeredgewidths(self):
+        return make_iterable(self._markeredgewidths, 1.0, self.n_total_files, return_list = True)
+
+    @markeredgewidths.setter
+    def markeredgewidths(self, value):
+        self._markeredgewidths = value 
+
+    @property
+    def markeredgecolors(self):
+        return make_iterable(self._markeredgecolors, None, self.n_total_files, return_list = True)
+
+    @markeredgecolors.setter
+    def markeredgecolors(self, value):
+        self._markeredgecolors = value 
+
+    @property
+    def markerfacecolors(self):
+        return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
+
+    @markerfacecolors.setter
+    def markerfacecolors(self, value):
+        self._markerfacecolors = value 
+
+
     def _update_params(self):
 
         n_total_files = len(self.files) + len(self.twinx)
@@ -176,16 +238,6 @@ class Plot:
             self.line_color_indices = make_iterable(self.line_color_indices, 0, n_total_files, return_list = True)
             self.colors = [self.colors[i] for i in self.line_color_indices]
 
-        # TODO: Make properties and setters out of these
-        # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
-        self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
-        self.linewidths         = make_iterable(self.linewidths        , 1      , n_total_files, return_list = True)
-        self.markers            = make_iterable(self.markers           , None   , n_total_files, return_list = True)
-        self.markersize         = make_iterable(self.markersize        , 6.0    , n_total_files, return_list = True)
-        self.marker_edge_widths = make_iterable(self.marker_edge_widths, 1.0    , n_total_files, return_list = True)
-        self.marker_face_colors = make_iterable(self.marker_face_colors, None   , n_total_files, return_list = True)
-        self.marker_edge_colors = make_iterable(self.marker_edge_colors, None   , n_total_files, return_list = True)
-
         # Create a cycler
         self.final_cycler = self._get_props_cycler()
 
@@ -195,18 +247,18 @@ class Plot:
     def _get_props_cycler(self):
         main_c =  cycler(
             color           = list(self.colors[:len(self.files + self.twinx)]),
-            linestyle       = list(self.linestyles),
-            linewidth       = list(self.linewidths),
-            marker          = list(self.markers),
-            markersize      = list(self.markersize),
-            markeredgewidth = list(self.marker_edge_widths),
+            linestyle       = self.linestyles,
+            linewidth       = self.linewidths,
+            marker          = self.markers,
+            markersize      = self.markersizes,
+            markeredgewidth = self.markeredgewidths,
         )
 
-        if list(filter(None, self.marker_edge_colors)):
-            main_c = main_c + cycler(markeredgecolor = list(self.marker_edge_colors) )
+        if list(filter(None, self.markeredgecolors)):
+            main_c = main_c + cycler(markeredgecolor = self.markeredgecolors)
 
-        if list(filter(None, self.marker_face_colors)):
-            main_c = main_c + cycler(markerfacecolor = list(self.marker_face_colors) )
+        if list(filter(None, self.markerfacecolors)):
+            main_c = main_c + cycler(markerfacecolor = self.markerfacecolors)
 
         return main_c
 
