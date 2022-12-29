@@ -1,6 +1,10 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.interpolate import interp1d
+from tplot.utils import make_iterable
+from cycler import cycler
+
+# TODO: GPR
 
 def parametric_line(ax, slope, intercept, xlog=False, ylog=False, **kwargs):
     """Plot a line from slope and intercept"""
@@ -19,10 +23,21 @@ def parametric_line(ax, slope, intercept, xlog=False, ylog=False, **kwargs):
     if ylog: 
         y_vals = np.power(10,y_vals)
 
-    ax.plot(x_vals, y_vals, **kwargs)
+    return ax.plot(x_vals, y_vals, **kwargs)
 
-def fit_lines(ax, xs, ys, xlog=False, ylog=False, **kwargs):
-    for x,y in zip(xs, ys): 
+def fit_lines(ax, xs, ys, xlog=False, ylog=False, labels=None, zorders=None, **kwargs):
+    lines = []
+
+    labels = make_iterable(labels, '', len(xs), return_list=True)
+    zorders = make_iterable(zorders, -1, len(xs), return_list=True)
+
+    for key in kwargs: 
+        kwargs[key] = make_iterable(kwargs[key], None, len(xs), return_list=True)
+
+    custom_cycler = cycler(**kwargs)
+    ax.set_prop_cycle(custom_cycler)
+
+    for x,y,label,zorder in zip(xs, ys, labels, zorders): 
         X = np.array(x)
         Y = np.array(y)
 
@@ -39,8 +54,11 @@ def fit_lines(ax, xs, ys, xlog=False, ylog=False, **kwargs):
         model.fit(X, Y)
 
         score = model.score(X,Y)
-        parametric_line(ax, model.coef_, model.intercept_, **kwargs)
+        line = parametric_line(ax, model.coef_, model.intercept_ , label=label, zorder=zorder)
         print(f"R2={score} | m={model.coef_} | c={model.intercept_}")
+        lines.extend(line)
+
+    return lines
 
 def extrapolate(ax, xs, ys, kind='linear'):
     xlim = ax.get_xlim()

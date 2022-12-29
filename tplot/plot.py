@@ -16,11 +16,13 @@ from scipy.interpolate import make_interp_spline, BSpline
 from collections.abc import Iterable
 from pathlib import Path
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 class Plot:
 
     def __init__(self, **kwargs) -> None:
+
+        print("Initializing Plot")
 
         # Labels
         self.title:str  = ''
@@ -72,6 +74,7 @@ class Plot:
         self.y2lims :Optional[Tuple[float,float]] = None
         self.y2log:bool = False
         self.colormap2:str = 'tab10'
+        self.colors: list = []
 
         # Filling and hatching
         self.fill:Optional[float|str] = None
@@ -94,9 +97,11 @@ class Plot:
         self.x2s :list[np.ndarray] = []
         self.y2s :list[np.ndarray] = []
 
-        self.fig = None
-        self.ax  = None
-        self.ax2 = None
+        # self.fig = None
+        # self.ax  = None
+        # self.ax2 = None
+        # self.lines = []
+        # self.aux_lines = []
 
         for key, value in kwargs.items():
             if key in self.__dict__: 
@@ -176,6 +181,7 @@ class Plot:
             self.line_color_indices = make_iterable(self.line_color_indices, 0, n_total_files, return_list = True)
             self.colors = [self.colors[i] for i in self.line_color_indices]
 
+        # TODO: Make properties and setters out of these
         # Ensure that our properties are of the right length. This was essential back when we used generators instead of property cyclers
         self.linestyles         = make_iterable(self.linestyles        , 'solid', n_total_files, return_list = True)
         self.linewidths         = make_iterable(self.linewidths        , 1      , n_total_files, return_list = True)
@@ -255,6 +261,7 @@ class Plot:
         if self.ylog:
             ax.set(yscale='log')
 
+        # TODO: Understand and expose
         ax.set_aspect(self.aspect)
         # TODO: Expose
         ax.autoscale(tight=True)
@@ -323,11 +330,23 @@ class Plot:
         self.x2s, self.y2s = smoothen_xys(self.x2s, self.y2s, order, npoints)
         return self
 
-    def scale(self, x=1, y=1):
+    def scale(self, x=1.0, y=1.0):
         self.xs = list(map(lambda z: scale_axis(z, x), self.xs))
         self.ys = list(map(lambda z: scale_axis(z, y), self.ys))
         self.x2s = list(map(lambda z: scale_axis(z, x), self.x2s))
         self.y2s = list(map(lambda z: scale_axis(z, y), self.y2s))
+        return self
+
+    def multiscale(self, x:Union[float,Iterable[float]]=1.0, y:Union[float,Iterable[float]]=1.0):
+        num = len(self.files) + len(self.twinx)
+        x   = make_iterable(x, 1.0, num, return_list = False)
+        y   = make_iterable(y, 1.0, num, return_list = False)
+
+        self.xs = list(map(scale_axis, self.xs, x))
+        self.ys = list(map(scale_axis, self.ys, y))
+        self.x2s = list(map(scale_axis, self.x2s, x))
+        self.y2s = list(map(scale_axis, self.y2s, y))
+
         return self
 
     # TODO: implement xlogify
@@ -400,7 +419,7 @@ class Plot:
             line = ax.plot(x, y, label=label.replace('_', '-'), zorder=zorder )
             lines.extend(line)
 
-            if isinstance(self.fill, float):
+            if isinstance(self.fill, float) or isinstance(self.fill, int):
                 ax.fill_between(x, y, self.fill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
                 plt.rcParams['hatch.linewidth'] = self.hatch_linewidth
             elif isinstance(self.fill, str): 
@@ -411,23 +430,35 @@ class Plot:
 
         return lines
 
-    def _plot_legend(self, ax, all_lines, legend=None):
+    def _plot_legend(self, ax, all_lines=None, legend=None):
         if legend is None:
             legend = self.legend
-        all_labels = [l.get_label() for l in all_lines]
-        ax.legend(all_lines,
-                  all_labels,
-                  loc=legend[0],
-                  bbox_to_anchor=(float(legend[1]),float(legend[2])),
-                  shadow=True,
-                  fontsize=self.legend_size,
-                  ncol=self.legend_ncol)
+        if all_lines:
+            all_labels = [l.get_label() for l in all_lines]
+            ax.legend(all_lines,
+                      all_labels,
+                      loc=legend[0],
+                      bbox_to_anchor=(float(legend[1]),float(legend[2])),
+                      shadow=True,
+                      fontsize=self.legend_size,
+                      ncol=self.legend_ncol)
+        else:
+            ax.legend(loc=legend[0],
+                      bbox_to_anchor=(float(legend[1]),float(legend[2])),
+                      shadow=True,
+                      fontsize=self.legend_size,
+                      ncol=self.legend_ncol)
+
 
     def fit_lines(self, xlog=False, ylog=False, **kwargs): 
-        fit_lines(self.ax, self.xs, self.ys, xlog, ylog, **kwargs)
+        lines = fit_lines(self.ax, self.xs, self.ys, xlog, ylog, **kwargs)
 
+        lines2 = []
         if self.twinx:
-            fit_lines(self.ax2, self.x2s, self.y2s, xlog, ylog, **kwargs)
+            lines2 = fit_lines(self.ax2, self.x2s, self.y2s, xlog, ylog, **kwargs)
+
+        self.aux_lines = lines + lines2
+
         return self
 
     def extrapolate(self, kind='linear'):
@@ -459,14 +490,14 @@ class Plot:
 
         return self
 
-    def hlines(self, yvals):
+    def hlines(self, yvals, **kwargs):
         xlim = self.ax.get_xlim()
-        self.ax.hlines(yvals, xlim[0], xlim[1])
+        self.ax.hlines(yvals, xlim[0], xlim[1], **kwargs)
         return self
 
-    def vlines(self, xvals):
+    def vlines(self, xvals, **kwargs):
         ylim = self.ax.get_ylim()
-        self.ax.vlines(xvals, ylim[0], ylim[1])
+        self.ax.vlines(xvals, ylim[0], ylim[1], **kwargs)
         return self
 
     def draw(self, clean:bool = True):
@@ -487,18 +518,19 @@ class Plot:
 
         self.lines = lines + lines2
 
-        if self.show_legend:
-            self._plot_legend(self.ax, self.lines)
-
         return self
 
-    def display(self,):
-        # Default legend position of below the plot doesn't show on frontend
-        self._plot_legend(self.ax, self.lines, ('upper left', 0, 1))
+    def show(self,):
+        if self.show_legend:
+            self._plot_legend(self.ax, legend = ('upper left', 0, 1))
+
         plt.show()
-        # return self
+        return self
 
     def save(self, filename, destdir=None):
+        if self.show_legend:
+            self._plot_legend(self.ax, self.lines + self.aux_lines)
+
         if destdir is None:
             destdir = self.destdir
         else: 
@@ -515,4 +547,7 @@ class Plot:
         yield "files", self.files
 
     def __del__(self):
+        plt.close(self.fig)
+
+    def close(self):
         plt.close(self.fig)

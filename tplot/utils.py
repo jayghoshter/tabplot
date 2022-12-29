@@ -5,7 +5,9 @@ import numpy as np
 from scipy.interpolate import make_interp_spline, BSpline
 import numexpr as ne
 
-def make_iterable(obj, default_value, default_length, return_list=True):
+from typing import Iterable
+
+def make_iterable(obj, default_value, default_length, return_list=True) -> Iterable:
     """
     For a given object, 
         - if it is false-like, return [ default_value ] * default_length
