@@ -340,10 +340,22 @@ class Plot:
             self.ax.set_ylim((ylim[1], ylim[0]))
 
     def read(self, 
+             files             :Optional[list] = None,
+             twinx             :Optional[list] = None,
              header            :bool           = False,
              columns           :Tuple[int,int] = (0,1),
+             labels            :Optional[list] = None,
              xticks_column     :Optional[int]  = None,
              xticklabels_column:Optional[int]  = None, ):
+
+        if files is not None:
+            self.files = files
+
+        if twinx is not None:
+            self.twinx = twinx
+
+        if labels is not None:
+            self.labels = labels
 
         file_data_list = self._read_files(self.files, header)
         self.xs, self.ys = self._extract_coordinate_data(file_data_list, columns)

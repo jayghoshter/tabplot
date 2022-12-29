@@ -40,7 +40,23 @@ class TestExamplePlot(unittest.TestCase):
 
         self.assertTrue(comp)
 
+    def test_files_spec_in_read(self):
+        output_filename = 'line_plot_file_spec_in_read.png'
+        reference_filename = 'line_plot_basic.png'
+        plot = Plot(
+            destdir = self.output_dir,
+            figsize = (4.0,4.0),
+            show_legend = False
+        )
+        plot.read(files = [ str(self.resource_dir / 'test.csv') ]).draw().save(output_filename)
+
+        comp = filecmp.cmp(self.reference_dir / reference_filename, self.output_dir / output_filename, shallow=False)
+
+        self.assertTrue(comp)
+        
+
     def tearDown(self) -> None:
         super().tearDown()
         shutil.rmtree(self.resource_dir)
         shutil.rmtree(self.output_dir)
+
