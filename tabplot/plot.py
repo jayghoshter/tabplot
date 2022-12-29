@@ -1,11 +1,11 @@
-from tplot.utils import make_iterable
-from tplot.utils import readfile
-from tplot.utils import normalize
-from tplot.utils import scale_axis
-from tplot.utils import smoothen_xys
-from tplot.utils import strim
-from tplot.postprocessing import fit_lines
-from tplot.postprocessing import extrapolate
+from tabplot.utils import make_iterable
+from tabplot.utils import readfile
+from tabplot.utils import normalize
+from tabplot.utils import scale_axis
+from tabplot.utils import smoothen_xys
+from tabplot.utils import strim
+from tabplot.postprocessing import fit_lines
+from tabplot.postprocessing import extrapolate
 from rich import print
 
 from matplotlib import pyplot as plt
@@ -97,23 +97,18 @@ class Plot:
         self.x2s :list[np.ndarray] = []
         self.y2s :list[np.ndarray] = []
 
-        # self.fig = None
-        # self.ax  = None
-        # self.ax2 = None
-        # self.lines = []
-        # self.aux_lines = []
+        self.fig:Optional[plt.Figure] = None
+        self.ax  = None
+        self.ax2 = None
+        self.lines = []
+        self.aux_lines = []
 
         for key, value in kwargs.items():
             if key in self.__dict__: 
                 setattr(self, key, value)
-            # elif key in [attribute for attribute in dir(self.__class__) if callable(getattr(self.__class__, attribute)) and attribute.startswith('__') is False]:
-            #     pass
             elif key in [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]:
                 setattr(self, key, value)
             else: 
-                # methods = [attribute for attribute in dir(self.__class__) if callable(getattr(self.__class__, attribute)) and attribute.startswith('__') is False]
-                # property_names= [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]
-                # print(property_names)
                 raise NameError(f"No such attribute: {key}")
 
     @property
@@ -529,7 +524,7 @@ class Plot:
 
     def save(self, filename, destdir=None):
         if self.show_legend:
-            self._plot_legend(self.ax, self.lines + self.aux_lines)
+            self._plot_legend(self.ax)
 
         if destdir is None:
             destdir = self.destdir

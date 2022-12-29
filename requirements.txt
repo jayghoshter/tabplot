@@ -2,3 +2,5 @@ matplotlib
 numpy
 scipy
 rich
+numexpr
+scikit-learn

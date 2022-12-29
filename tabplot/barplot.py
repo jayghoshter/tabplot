@@ -1,4 +1,4 @@
-from tplot import Plot
+from tabplot import Plot
 
 class BarPlot(Plot):
     def __init__(self, **kwargs) -> None:

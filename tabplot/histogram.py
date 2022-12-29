@@ -1,4 +1,4 @@
-from tplot import Plot
+from tabplot import Plot
 import numpy as np
 from typing import Optional, Tuple
 

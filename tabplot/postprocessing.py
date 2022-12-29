@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.interpolate import interp1d
-from tplot.utils import make_iterable
+from tabplot.utils import make_iterable
 from cycler import cycler
 
 # TODO: GPR
