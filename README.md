@@ -9,8 +9,18 @@ When working from the terminal, I'd need to quickly (and beautifully) plot the d
 matplotlib
 numpy
 scipy
+scikit-learn
 SciencePlots
 numexpr
+```
+
+# Installation
+
+You can install tabplot via testpypi
+
+```
+pip install matplotlib numpy scipy scikit-learn SciencePlots numexpr
+pip install -i https://test.pypi.org/simple/ tabplot
 ```
 
 # Examples
@@ -19,9 +29,9 @@ numexpr
 
 Assuming text data stored in csv-style files with the following assumptions:
 
-    - No header labels
-    - x,y data in columns 0,1 respectively
-    - Either space or comma separated
+- No header labels
+- x,y data in columns 0,1 respectively
+- Either space or comma separated
 
 The following code will generate basic plots. For customization options please refer to the examples section or test cases.
 
