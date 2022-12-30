@@ -501,13 +501,17 @@ class Plot:
                       bbox_to_anchor=(float(legend[1]),float(legend[2])),
                       shadow=True,
                       fontsize=self.legend_size,
-                      ncol=self.legend_ncol)
+                      ncol=self.legend_ncol,
+                      frameon=self.legend_frameon
+                      )
         else:
             ax.legend(loc=legend[0],
                       bbox_to_anchor=(float(legend[1]),float(legend[2])),
                       shadow=True,
                       fontsize=self.legend_size,
-                      ncol=self.legend_ncol)
+                      ncol=self.legend_ncol,
+                      frameon=self.legend_frameon
+                      )
 
 
     def fit_lines(self, xlog=False, ylog=False, **kwargs): 
