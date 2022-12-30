@@ -61,7 +61,7 @@ class Plot:
         self.line_color_indices  :int|Iterable[int]     = []
         self.line_color_indices_2:int|Iterable[int]     = []
 
-        self.style:list[str] = ['science']
+        self.style:Optional[list[str]|str] = None
         self.colormap:str = 'tab10'
 
         self.show_legend   :bool                             = True
@@ -124,7 +124,8 @@ class Plot:
 
         self._update_params()
 
-        plt.style.use(self.style)
+        if self.style:
+            plt.style.use(self.style)
 
         if not self.fig: 
             self.fig, self.ax = plt.subplots(figsize=self.figsize)
