@@ -587,7 +587,7 @@ class Plot:
         plt.show()
         return self
 
-    def save(self, filename, destdir=None):
+    def save(self, filename, destdir=None, dpi=300, bbox_inches='tight', pad_inches=0.05):
         if self.show_legend:
             self._plot_legend(self.ax)
 
@@ -598,7 +598,7 @@ class Plot:
 
         destdir.mkdir(exist_ok=True)
 
-        self.fig.savefig(destdir / filename, dpi=300)
+        self.fig.savefig(destdir / filename,  dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches)
         print(f"Saved as {destdir / filename}\n")
         return self
 
