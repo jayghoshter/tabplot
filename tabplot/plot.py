@@ -490,12 +490,12 @@ class Plot:
 
         return lines
 
-    def _plot_legend(self, ax, all_lines=None, legend=None):
+    def _plot_legend(self, ax, lines=None, legend=None):
         if legend is None:
             legend = self.legend
-        if all_lines:
-            all_labels = [l.get_label() for l in all_lines]
-            ax.legend(all_lines,
+        if lines:
+            all_labels = [l.get_label() for l in lines]
+            ax.legend(lines,
                       all_labels,
                       loc=legend[0],
                       bbox_to_anchor=(float(legend[1]),float(legend[2])),
