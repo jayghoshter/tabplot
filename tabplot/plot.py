@@ -59,6 +59,7 @@ class Plot:
         self._markerfacecolors     :str|Iterable[str]     = []
         self._markeredgecolors     :str|Iterable[str]     = []
         self._markeredgewidths     :float|Iterable        = []
+        self._fillstyles           :str|Iterable[str]     = []
 
         self.line_color_indices  :int|Iterable[int]     = []
         self.line_color_indices_2:int|Iterable[int]     = []
@@ -222,6 +223,14 @@ class Plot:
         self._markeredgecolors = value 
 
     @property
+    def fillstyles(self):
+        return make_iterable(self._fillstyles, 'full', self.n_total_files, return_list = True) 
+
+    @fillstyles.setter
+    def fillstyles(self, value):
+        self._fillstyles = value 
+
+    @property
     def markerfacecolors(self):
         if self._markerfacecolors:
             return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
@@ -265,6 +274,7 @@ class Plot:
             markeredgewidth = self.markeredgewidths,
             markeredgecolor = self.markeredgecolors[:len(self.files + self.twinx)],
             markerfacecolor = self.markerfacecolors[:len(self.files + self.twinx)],
+            fillstyle       = self.fillstyles
         )
 
         return main_c
