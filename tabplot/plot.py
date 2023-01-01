@@ -109,6 +109,13 @@ class Plot:
         self.lines = []
         self.aux_lines = []
 
+        self.font_family  = 'sans-serif'
+        self.font_style   = 'normal'
+        self.font_variant = 'normal'
+        self.font_weight  = 'normal'
+        self.font_stretch = 'normal'
+        self.font_size    = 10.0
+
         for key, value in kwargs.items():
             if key in self.__dict__: 
                 setattr(self, key, value)
@@ -129,6 +136,17 @@ class Plot:
 
         if self.style and self.preload_style: 
             plt.style.use(self.style)
+
+        self.setrc(
+            {
+                'font.family'  : self.font_family,
+                'font.style'   : self.font_style,
+                'font.variant' : self.font_variant,
+                'font.weight'  : self.font_weight,
+                'font.stretch' : self.font_stretch,
+                'font.size'    : self.font_size,
+            }
+        )
 
         self._update_params()
 
