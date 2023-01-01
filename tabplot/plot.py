@@ -65,6 +65,7 @@ class Plot:
         self.line_color_indices_2:int|Iterable[int]     = []
 
         self.style:Optional[list[str]|str] = None
+        self.preload_style:bool = False         # Allows overriding style by some settings given in this class such as font settings
         self.colormap:str = 'tab10'
 
         self.show_legend   :bool                             = True
@@ -126,9 +127,12 @@ class Plot:
 
     def setup(self, clean:bool = True):
 
+        if self.style and self.preload_style: 
+            plt.style.use(self.style)
+
         self._update_params()
 
-        if self.style:
+        if self.style and not self.preload_style:
             plt.style.use(self.style)
 
         if not self.fig: 
