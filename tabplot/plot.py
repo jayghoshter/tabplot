@@ -266,7 +266,7 @@ class Plot:
 
     def _get_props_cycler(self):
         main_c =  cycler(
-            color           = list(self.colors[:len(self.files + self.twinx)]),
+            color           = self.colors[:len(self.files + self.twinx)],
             linestyle       = self.linestyles,
             linewidth       = self.linewidths,
             marker          = self.markers,
