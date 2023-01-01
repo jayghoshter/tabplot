@@ -85,6 +85,7 @@ class Plot:
         self.fill_alpha:Optional[float] = 0.2
         self.hatch:Optional[str] = 'xxx'
         self.hatch_linewidth:Optional[float] = 0.5
+        self.hatch_color:Optional[str|tuple] = 'black'
 
         self.files    :list                  = []
         self.twinx    :list                  = []
@@ -484,6 +485,7 @@ class Plot:
             if isinstance(self.fill, float) or isinstance(self.fill, int):
                 ax.fill_between(x, y, self.fill, interpolate=True, hatch=self.hatch, alpha=self.fill_alpha)
                 plt.rcParams['hatch.linewidth'] = self.hatch_linewidth
+                plt.rcParams['hatch.color'] = self.hatch_color
             elif isinstance(self.fill, str): 
                 xfill, yfill = readfile(self.fill)
                 if xfill != x:
