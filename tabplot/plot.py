@@ -28,6 +28,8 @@ class Plot:
         self.title:str  = ''
         self.xlabel:str = ''
         self.ylabel:str = ''
+        self.xlabel_loc:str = 'center'
+        self.ylabel_loc:str = 'center'
 
         # Size and dimension
         self.aspect :str                          = 'auto'
@@ -301,8 +303,8 @@ class Plot:
         self.ax.set_prop_cycle(self.final_cycler)
 
         ax.set(title = self.title)
-        ax.set(xlabel = self.xlabel)
-        ax.set(ylabel = self.ylabel)
+        ax.set_xlabel(self.xlabel, loc=self.xlabel_loc)
+        ax.set_ylabel(self.ylabel, loc=self.ylabel_loc)
 
         if self.xlog:
             ax.set(xscale='log')
