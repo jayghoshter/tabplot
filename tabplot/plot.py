@@ -211,7 +211,11 @@ class Plot:
 
     @property
     def markeredgecolors(self):
-        return make_iterable(self._markeredgecolors, None, self.n_total_files, return_list = True)
+        if self._markeredgecolors:
+            return make_iterable(self._markeredgecolors, None, self.n_total_files, return_list = True)
+        else:
+            return self.colors
+            
 
     @markeredgecolors.setter
     def markeredgecolors(self, value):
@@ -219,7 +223,10 @@ class Plot:
 
     @property
     def markerfacecolors(self):
-        return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
+        if self._markerfacecolors:
+            return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
+        else:
+            return self.colors
 
     @markerfacecolors.setter
     def markerfacecolors(self, value):
@@ -256,13 +263,9 @@ class Plot:
             marker          = self.markers,
             markersize      = self.markersizes,
             markeredgewidth = self.markeredgewidths,
+            markeredgecolor = self.markeredgecolors[:len(self.files + self.twinx)],
+            markerfacecolor = self.markerfacecolors[:len(self.files + self.twinx)],
         )
-
-        if list(filter(None, self.markeredgecolors)):
-            main_c = main_c + cycler(markeredgecolor = self.markeredgecolors)
-
-        if list(filter(None, self.markerfacecolors)):
-            main_c = main_c + cycler(markerfacecolor = self.markerfacecolors)
 
         return main_c
 
