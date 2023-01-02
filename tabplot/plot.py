@@ -69,10 +69,29 @@ class Plot:
         self.colormap:str = 'tab10'
 
         self.show_legend   :bool                             = True
-        self.legend        :Tuple[str, str|float, str|float] = ('upper center', '0.5', '-0.2')
-        self.legend_frameon:bool                             = False
-        self.legend_size   :str                              = 'medium'
-        self.legend_ncol   :int                              = 1
+        self.combine_legends :bool                             = True
+        self.legend_loc            = 'best'
+        self.legend_bbox_to_anchor = None
+        self.legend_ncols   :int                              = 1
+        self.legend_frameon        = True # if True, draw the legend on a background patch
+        self.legend_framealpha     = 0.8 # legend patch transparency
+        self.legend_facecolor      = 'inherit' # inherit from axes.facecolor; or color spec
+        self.legend_edgecolor      = 'inherit'
+        self.legend_fancybox       = True # if True, use a rounded box for the
+        self.legend_shadow         = False # if True, give background a shadow effect
+        self.legend_numpoints      = 1 # the number of marker points in the legend line
+        self.legend_scatterpoints  = 1 # number of scatter points
+        self.legend_markerscale    = 1.0 # the relative size of legend markers vs. original
+        self.legend_fontsize       = 'medium'
+        self.legend_labelcolor     = None
+        self.legend_title_fontsize = None # None sets to the same as the default axes.
+        self.legend_borderpad      = 0.4 # border whitespace
+        self.legend_labelspacing   = 0.5 # the vertical space between the legend entries
+        self.legend_handlelength   = 2.0 # the length of the legend lines
+        self.legend_handleheight   = 0.7 # the height of the legend handle
+        self.legend_handletextpad  = 0.8 # the space between the legend line and legend text
+        self.legend_borderaxespad  = 0.5 # the border between the axes and legend edge
+        self.legend_columnspacing  = 2.0 # column separation
 
         # Twinx attributes
         self.y2label:str = ''
@@ -147,6 +166,28 @@ class Plot:
                 'font.size'    : self.font_size,
             }
         )
+
+        self.setrc({
+                       'legend.frameon' : self.legend_frameon,
+                       'legend.framealpha' : self.legend_framealpha,
+                       'legend.facecolor' : self.legend_facecolor,
+                       'legend.edgecolor' : self.legend_edgecolor,
+                       'legend.fancybox' : self.legend_fancybox,
+                       'legend.shadow' : self.legend_shadow,
+                       'legend.numpoints' : self.legend_numpoints,
+                       'legend.scatterpoints' : self.legend_scatterpoints,
+                       'legend.markerscale' : self.legend_markerscale,
+                       'legend.fontsize' : self.legend_fontsize,
+                       'legend.labelcolor' : self.legend_labelcolor,
+                       'legend.title_fontsize' : self.legend_title_fontsize,
+                       'legend.borderpad' : self.legend_borderpad,
+                       'legend.labelspacing' : self.legend_labelspacing,
+                       'legend.handlelength' : self.legend_handlelength,
+                       'legend.handleheight' : self.legend_handleheight,
+                       'legend.handletextpad' : self.legend_handletextpad,
+                       'legend.borderaxespad' : self.legend_borderaxespad,
+                       'legend.columnspacing' : self.legend_columnspacing,
+                   })
 
         self._update_params()
 
@@ -555,28 +596,32 @@ class Plot:
 
         return lines
 
-    def _plot_legend(self, ax, lines=None, legend=None):
-        if legend is None:
-            legend = self.legend
+    def _plot_legend(self, ax, lines=None, loc=None, bbox_to_anchor=None, ncols=None):
+        if loc is None:
+            loc = self.legend_loc
+
+        if bbox_to_anchor is None:
+            bbox_to_anchor = self.legend_bbox_to_anchor
+
+        if ncols is None:
+            ncols = self.legend_ncols
+
+
         if lines:
             all_labels = [l.get_label() for l in lines]
-            ax.legend(lines,
-                      all_labels,
-                      loc=legend[0],
-                      bbox_to_anchor=(float(legend[1]),float(legend[2])),
-                      shadow=True,
-                      fontsize=self.legend_size,
-                      ncol=self.legend_ncol,
-                      frameon=self.legend_frameon
-                      )
+            ax.legend(
+                lines,
+                all_labels,
+                loc=loc,
+                bbox_to_anchor=bbox_to_anchor,
+                ncols = ncols
+            )
         else:
-            ax.legend(loc=legend[0],
-                      bbox_to_anchor=(float(legend[1]),float(legend[2])),
-                      shadow=True,
-                      fontsize=self.legend_size,
-                      ncol=self.legend_ncol,
-                      frameon=self.legend_frameon
-                      )
+            ax.legend(
+                loc=loc,
+                bbox_to_anchor=bbox_to_anchor,
+                ncols = ncols
+            )
 
 
     def fit_lines(self, xlog=False, ylog=False, **kwargs): 
@@ -651,14 +696,25 @@ class Plot:
 
     def show(self,):
         if self.show_legend:
-            self._plot_legend(self.ax, legend = ('upper left', 0, 1))
+            if self.combine_legends: 
+                self._plot_legend(self.ax, self.lines, loc='best')
+            else: 
+                self._plot_legend(self.ax, loc='best')
+                if self.twinx:
+                    self._plot_legend(self.ax2, loc='best')
 
         plt.show()
         return self
 
     def save(self, filename, destdir=None, dpi=300, bbox_inches='tight', pad_inches=0.05):
         if self.show_legend:
-            self._plot_legend(self.ax)
+            if self.combine_legends: 
+                self._plot_legend(self.ax, self.lines)
+            else: 
+                # TODO: Allow setting legend location for ax2 separately
+                self._plot_legend(self.ax)
+                if self.twinx:
+                    self._plot_legend(self.ax2)
 
         if destdir is None:
             destdir = self.destdir
