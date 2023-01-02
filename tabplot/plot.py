@@ -348,10 +348,10 @@ class Plot:
             self.colors = [self.colors[i] for i in self.line_color_indices]
 
         # Create a cycler
-        self.final_cycler = self._get_props_cycler()
+        self.props_cycler = self._get_props_cycler()
 
         if self.twinx: 
-            self.final_cycler2 = self.final_cycler[len(self.files):].concat(self.final_cycler[:len(self.files)])
+            self.props_cycler2 = self.props_cycler[len(self.files):].concat(self.props_cycler[:len(self.files)])
 
     def _get_props_cycler(self):
         main_c =  cycler(
@@ -403,7 +403,7 @@ class Plot:
 
     def _setup_axes(self,):
         ax = self.ax
-        self.ax.set_prop_cycle(self.final_cycler)
+        self.ax.set_prop_cycle(self.props_cycler)
 
         ax.set(title = self.title)
         ax.set_xlabel(self.xlabel, loc=self.xlabel_loc)
@@ -426,7 +426,7 @@ class Plot:
 
         if self.twinx:
             self.ax2 = ax.twinx()
-            self.ax2.set_prop_cycle(self.final_cycler2)
+            self.ax2.set_prop_cycle(self.props_cycler2)
             ax2 = self.ax2
             ax2 = self.ax2
             ax2.set(ylabel=self.y2label)
