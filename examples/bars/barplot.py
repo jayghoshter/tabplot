@@ -6,7 +6,7 @@ BarPlot(
     files = ['./bar_a.csv', './bar_b.csv'],
     labels = ['A', 'B'],
     bar_width = 0.4,
-    legend = ('upper right', 1, 1),
+    legend_loc = 'upper right',
     xlabel = 'Category',
     ylabel = 'Value',
     title = 'Some Bar Plot'

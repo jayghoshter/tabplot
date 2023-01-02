@@ -6,7 +6,7 @@ plot = Plot()
 plot.files = ['./line_a.tsv']
 plot.labels = ['A']
 plot.linewidths = 2
-plot.legend = ('upper left', 0, 1)
+plot.legend_loc = 'upper left'
 plot.read().draw().save('multi-1.pdf')
 
 plot.files = ['./line_b.tsv']
