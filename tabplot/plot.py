@@ -122,6 +122,8 @@ class Plot:
         self.x2s :list[np.ndarray] = []
         self.y2s :list[np.ndarray] = []
 
+        self.figure_dpi = 300
+
         self.fig:Optional[plt.Figure] = None
         self.ax  = None
         self.ax2 = None
@@ -353,6 +355,12 @@ class Plot:
                 'legend.handletextpad' : self.legend_handletextpad,
                 'legend.borderaxespad' : self.legend_borderaxespad,
                 'legend.columnspacing' : self.legend_columnspacing,
+            }
+        )
+
+        self.setrc(
+            {
+                'figure.dpi' : self.figure_dpi,
             }
         )
 
@@ -710,7 +718,7 @@ class Plot:
         plt.show()
         return self
 
-    def save(self, filename, destdir=None, dpi=300, bbox_inches='tight', pad_inches=0.05):
+    def save(self, filename, destdir=None, dpi=None, bbox_inches='tight', pad_inches=0.05):
         if self.show_legend:
             if self.combine_legends: 
                 self._plot_legend(self.ax, self.lines)
