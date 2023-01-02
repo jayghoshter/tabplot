@@ -156,39 +156,6 @@ class Plot:
         if self.style and self.preload_style: 
             plt.style.use(self.style)
 
-        self.setrc(
-            {
-                'font.family'  : self.font_family,
-                'font.style'   : self.font_style,
-                'font.variant' : self.font_variant,
-                'font.weight'  : self.font_weight,
-                'font.stretch' : self.font_stretch,
-                'font.size'    : self.font_size,
-            }
-        )
-
-        self.setrc({
-                       'legend.frameon' : self.legend_frameon,
-                       'legend.framealpha' : self.legend_framealpha,
-                       'legend.facecolor' : self.legend_facecolor,
-                       'legend.edgecolor' : self.legend_edgecolor,
-                       'legend.fancybox' : self.legend_fancybox,
-                       'legend.shadow' : self.legend_shadow,
-                       'legend.numpoints' : self.legend_numpoints,
-                       'legend.scatterpoints' : self.legend_scatterpoints,
-                       'legend.markerscale' : self.legend_markerscale,
-                       'legend.fontsize' : self.legend_fontsize,
-                       'legend.labelcolor' : self.legend_labelcolor,
-                       'legend.title_fontsize' : self.legend_title_fontsize,
-                       'legend.borderpad' : self.legend_borderpad,
-                       'legend.labelspacing' : self.legend_labelspacing,
-                       'legend.handlelength' : self.legend_handlelength,
-                       'legend.handleheight' : self.legend_handleheight,
-                       'legend.handletextpad' : self.legend_handletextpad,
-                       'legend.borderaxespad' : self.legend_borderaxespad,
-                       'legend.columnspacing' : self.legend_columnspacing,
-                   })
-
         self._update_params()
 
         if self.style and not self.preload_style:
@@ -352,6 +319,43 @@ class Plot:
 
         if self.twinx: 
             self.props_cycler2 = self.props_cycler[len(self.files):].concat(self.props_cycler[:len(self.files)])
+
+        # Set rc params
+        self.setrc(
+            {
+                'font.family'  : self.font_family,
+                'font.style'   : self.font_style,
+                'font.variant' : self.font_variant,
+                'font.weight'  : self.font_weight,
+                'font.stretch' : self.font_stretch,
+                'font.size'    : self.font_size,
+            }
+        )
+
+        self.setrc(
+            {
+                'legend.frameon' : self.legend_frameon,
+                'legend.framealpha' : self.legend_framealpha,
+                'legend.facecolor' : self.legend_facecolor,
+                'legend.edgecolor' : self.legend_edgecolor,
+                'legend.fancybox' : self.legend_fancybox,
+                'legend.shadow' : self.legend_shadow,
+                'legend.numpoints' : self.legend_numpoints,
+                'legend.scatterpoints' : self.legend_scatterpoints,
+                'legend.markerscale' : self.legend_markerscale,
+                'legend.fontsize' : self.legend_fontsize,
+                'legend.labelcolor' : self.legend_labelcolor,
+                'legend.title_fontsize' : self.legend_title_fontsize,
+                'legend.borderpad' : self.legend_borderpad,
+                'legend.labelspacing' : self.legend_labelspacing,
+                'legend.handlelength' : self.legend_handlelength,
+                'legend.handleheight' : self.legend_handleheight,
+                'legend.handletextpad' : self.legend_handletextpad,
+                'legend.borderaxespad' : self.legend_borderaxespad,
+                'legend.columnspacing' : self.legend_columnspacing,
+            }
+        )
+
 
     def _get_props_cycler(self):
         main_c =  cycler(
