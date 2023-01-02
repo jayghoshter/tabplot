@@ -1,6 +1,6 @@
-matplotlib
-numpy
-scipy
-rich
-numexpr
-scikit-learn
+matplotlib==3.6.2
+numexpr==2.8.4
+numpy==1.24.1
+rich==13.0.0
+scikit-learn==1.2.0
+scipy==1.9.3
