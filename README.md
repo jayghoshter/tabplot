@@ -4,24 +4,15 @@
 
 When working from the terminal, I'd need to quickly (and beautifully) plot the data in csv-style text files. This meant good colors, axis labels, plot labels, adjustable axis limits, etc. I started with making a simple wrapper script around matplotlib to do this. Over time, I kept adding pre- and post-processing functionality such as scaling, normalizing, and linear regression, not to mention exposing more of matplotlib's properties and functions. Since the script kept growing, I decided to move it into its own separate package.
 
-# Dependencies
-```
-matplotlib
-numpy
-scipy
-scikit-learn
-SciencePlots
-numexpr
-```
-
 # Installation
 
 You can install tabplot via testpypi
 
 ```
-pip install matplotlib numpy scipy scikit-learn SciencePlots numexpr
-pip install -i https://test.pypi.org/simple/ tabplot
+pip install git+https://github.com/jayghoshter/tabplot
 ```
+
+Check out [SciencePlots](https://github.com/garrettj403/SciencePlots) for added plot beautification.
 
 # Examples
 
