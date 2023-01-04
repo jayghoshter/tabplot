@@ -30,6 +30,7 @@ class Plot:
         self.ylabel:str = ''
         self.xlabel_loc:str = 'center'
         self.ylabel_loc:str = 'center'
+        self.y2label_loc:str = 'center'
 
         # Size and dimension
         self.aspect :str                          = 'auto'
@@ -436,12 +437,13 @@ class Plot:
         if self.ylims:
             ax.set_ylim(self.ylims)
 
-        if self.twinx:
-            self.ax2 = ax.twinx()
+        if self.twinx: 
+            if not self.ax2:
+                self.ax2 = ax.twinx()
+
             self.ax2.set_prop_cycle(self.props_cycler2)
             ax2 = self.ax2
-            ax2 = self.ax2
-            ax2.set(ylabel=self.y2label)
+            ax2.set_ylabel(self.y2label, loc=self.y2label_loc)
 
             if self.y2log:
                 ax2.set(yscale="log")
@@ -449,6 +451,7 @@ class Plot:
             if self.y2lims:
                 ax2.set_ylim(self.y2lims)
 
+        # WARNING: If setup is called more than once, this may be messed up
         if self.reverse_x:
             xlim = self.ax.get_xlim()
             self.ax.set_xlim((xlim[1], xlim[0]))
