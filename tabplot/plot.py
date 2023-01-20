@@ -712,7 +712,7 @@ class Plot:
     def show(self,):
         if self.show_legend:
             if self.combine_legends: 
-                self._plot_legend(self.ax, self.lines, loc='best')
+                self._plot_legend(self.ax, self.lines + self.aux_lines, loc='best')
             else: 
                 self._plot_legend(self.ax, loc='best')
                 if self.twinx:
@@ -724,7 +724,7 @@ class Plot:
     def save(self, filename, destdir=None, dpi=None, bbox_inches='tight', pad_inches=0.05):
         if self.show_legend:
             if self.combine_legends: 
-                self._plot_legend(self.ax, self.lines)
+                self._plot_legend(self.ax, self.lines + self.aux_lines)
             else: 
                 # TODO: Allow setting legend location for ax2 separately
                 self._plot_legend(self.ax)
