@@ -16,7 +16,7 @@ from scipy.interpolate import make_interp_spline, BSpline
 from collections.abc import Iterable
 from pathlib import Path
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List
 
 class Plot:
     # Labels
@@ -47,18 +47,6 @@ class Plot:
 
     # TODO: 
     show_axis:bool 
-
-    _linestyles           :str|Iterable[str]     
-    _linewidths           :float|Iterable[float] 
-    _markers              :str|Iterable[str]     
-    _markersizes          :float|Iterable[float] 
-    _markerfacecolors     :str|Iterable[str]     
-    _markeredgecolors     :str|Iterable[str]     
-    _markeredgewidths     :float|Iterable        
-    _fillstyles           :str|Iterable[str]     
-
-    line_color_indices  :int|Iterable[int]     
-    line_color_indices_2:int|Iterable[int]     
 
     style:Optional[list[str]|str] 
     preload_style:bool 
@@ -106,9 +94,22 @@ class Plot:
 
     files    :list                  
     twinx    :list                  
+
     _labels  :str|Iterable[str]     
     _zorders :Iterable[float]       
-    _destdir : Path
+    _destdir : Optional[Path]
+
+    _linestyles           :str|Iterable[str]     
+    _linewidths           :float|Iterable[float] 
+    _markers              :str|Iterable[str]     
+    _markersizes          :float|Iterable[float] 
+    _markerfacecolors     :str|Iterable[str]     
+    _markeredgecolors     :str|Iterable[str]     
+    _markeredgewidths     :float|Iterable[float]        
+    _fillstyles           :str|Iterable[str]     
+
+    line_color_indices  :int|Iterable[int]     
+    line_color_indices_2:int|Iterable[int]     
 
     # Store ndarray data from all files (including twinx)
     # TODO: underscore?
@@ -116,8 +117,8 @@ class Plot:
 
     figure_dpi:int 
 
-    lines    : list 
-    aux_lines: list
+    # lines    : list 
+    # aux_lines: list
 
     font_family  :str
     font_style   :str
@@ -265,12 +266,15 @@ class Plot:
         return self
 
     @property
-    def destdir(self):
+    def destdir(self) -> Optional[Path]:
         return self._destdir
 
     @destdir.setter
     def destdir(self, value):
-        self._destdir = Path(value)
+        if value is not None: 
+            self._destdir = Path(value)
+        else: 
+            self._destdir = Path('.')
 
     def setup(self, clean:bool = True):
 
@@ -322,7 +326,7 @@ class Plot:
         return len(self.files) + len(self.twinx)
 
     @property
-    def linestyles(self):
+    def linestyles(self) -> Iterable:
         return make_iterable(self._linestyles, 'solid', self.n_total_files, return_list = True)
 
     @linestyles.setter
@@ -330,7 +334,7 @@ class Plot:
         self._linestyles = value 
 
     @property
-    def linewidths(self):
+    def linewidths(self) -> Iterable:
         return make_iterable(self._linewidths, 1, self.n_total_files, return_list = True)
 
     @linewidths.setter
@@ -338,7 +342,7 @@ class Plot:
         self._linewidths = value 
         
     @property
-    def markers(self):
+    def markers(self) -> Iterable:
         return make_iterable(self._markers, None, self.n_total_files, return_list = True)
 
     @markers.setter
@@ -346,7 +350,7 @@ class Plot:
         self._markers = value 
 
     @property
-    def markersizes(self):
+    def markersizes(self) -> Iterable:
         return make_iterable(self._markersizes, 4.0, self.n_total_files, return_list = True)
 
     @markersizes.setter
@@ -354,7 +358,7 @@ class Plot:
         self._markersizes = value 
 
     @property
-    def markeredgewidths(self):
+    def markeredgewidths(self) -> Iterable:
         return make_iterable(self._markeredgewidths, 1.0, self.n_total_files, return_list = True)
 
     @markeredgewidths.setter
@@ -362,7 +366,7 @@ class Plot:
         self._markeredgewidths = value 
 
     @property
-    def markeredgecolors(self):
+    def markeredgecolors(self) -> Iterable:
         if self._markeredgecolors:
             return make_iterable(self._markeredgecolors, None, self.n_total_files, return_list = True)
         else:
@@ -374,7 +378,7 @@ class Plot:
         self._markeredgecolors = value 
 
     @property
-    def fillstyles(self):
+    def fillstyles(self) -> Iterable:
         return make_iterable(self._fillstyles, 'full', self.n_total_files, return_list = True) 
 
     @fillstyles.setter
@@ -382,7 +386,7 @@ class Plot:
         self._fillstyles = value 
 
     @property
-    def markerfacecolors(self):
+    def markerfacecolors(self) -> Iterable:
         if self._markerfacecolors:
             return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
         else:
