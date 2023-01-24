@@ -254,6 +254,16 @@ class Plot:
             else: 
                 raise NameError(f"No such attribute: {key}")
 
+    def from_dict(self, data):
+        for key, value in data.items():
+            if key in self.__dict__: 
+                setattr(self, key, value)
+            elif key in [p for p in dir(self.__class__) if isinstance(getattr(self.__class__,p),property)]:
+                setattr(self, key, value)
+            else: 
+                raise NameError(f"No such attribute: {key}")
+        return self
+
     @property
     def destdir(self):
         return self._destdir
