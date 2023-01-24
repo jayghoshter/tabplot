@@ -19,61 +19,168 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 class Plot:
+    # Labels
+    title:str  
+    xlabel:str 
+    ylabel:str 
+    xlabel_loc:str 
+    ylabel_loc:str 
+    y2label_loc:str 
+
+    # Size and dimension
+    aspect :str                          
+    figsize:Tuple[float, float]          
+    xlims  :Optional[Tuple[float,float]] 
+    ylims  :Optional[Tuple[float,float]] 
+
+    # Direction
+    reverse_x:bool 
+    reverse_y:bool 
+
+    # Ticks
+    xticks      :np.ndarray|list[float] 
+    yticks      :np.ndarray|list[float] 
+    xtick_labels:np.ndarray|list[str] 
+    ytick_labels:np.ndarray|list[int] 
+    xlog        :bool 
+    ylog        :bool 
+
+    # TODO: 
+    show_axis:bool 
+
+    _linestyles           :str|Iterable[str]     
+    _linewidths           :float|Iterable[float] 
+    _markers              :str|Iterable[str]     
+    _markersizes          :float|Iterable[float] 
+    _markerfacecolors     :str|Iterable[str]     
+    _markeredgecolors     :str|Iterable[str]     
+    _markeredgewidths     :float|Iterable        
+    _fillstyles           :str|Iterable[str]     
+
+    line_color_indices  :int|Iterable[int]     
+    line_color_indices_2:int|Iterable[int]     
+
+    style:Optional[list[str]|str] 
+    preload_style:bool 
+    colormap:str 
+
+    show_legend   :bool                             
+    combine_legends :bool                             
+    legend_loc : str
+    legend_bbox_to_anchor: Optional[Tuple[float, float]]
+    legend_ncols   :int                              
+    legend_frameon: bool        
+    legend_framealpha: float  
+    legend_facecolor: str      
+    legend_edgecolor: str      
+    legend_fancybox: bool       
+    legend_shadow : bool 
+    legend_numpoints   : int   
+    legend_scatterpoints  :int
+    legend_markerscale   :float 
+    legend_fontsize      :str 
+    legend_labelcolor    :Optional[str]
+    legend_title_fontsize : Optional[str]
+    legend_borderpad:float
+    legend_labelspacing   :float
+    legend_handlelength   :float
+    legend_handleheight   :float
+    legend_handletextpad  :float
+    legend_borderaxespad  :float
+    legend_columnspacing  :float
+
+    # Twinx attributes
+    y2label:str 
+    y2lims :Optional[Tuple[float,float]] 
+    y2log:bool 
+    colormap2:str 
+    colors: list 
+
+    # Filling and hatching
+    fill:Optional[float|str] 
+    fill_color:Optional[str] 
+    fill_alpha:Optional[float] 
+    hatch:Optional[str] 
+    hatch_linewidth:Optional[float] 
+    hatch_color:Optional[str|tuple] 
+
+    files    :list                  
+    twinx    :list                  
+    _labels  :str|Iterable[str]     
+    _zorders :Iterable[float]       
+    _destdir : Path
+
+    # Store ndarray data from all files (including twinx)
+    # TODO: underscore?
+    file_data_list:list 
+
+    figure_dpi:int 
+
+    lines    : list 
+    aux_lines: list
+
+    font_family  :str
+    font_style   :str
+    font_variant :str
+    font_weight  :str
+    font_stretch :str
+    font_size    :float
+
 
     def __init__(self, **kwargs) -> None:
 
         print("Initializing Plot")
 
         # Labels
-        self.title:str  = ''
-        self.xlabel:str = ''
-        self.ylabel:str = ''
-        self.xlabel_loc:str = 'center'
-        self.ylabel_loc:str = 'center'
-        self.y2label_loc:str = 'center'
+        self.title = ''
+        self.xlabel = ''
+        self.ylabel = ''
+        self.xlabel_loc = 'center'
+        self.ylabel_loc = 'center'
+        self.y2label_loc = 'center'
 
         # Size and dimension
-        self.aspect :str                          = 'auto'
-        self.figsize:Tuple[float, float]          = (4.0, 3.0)
-        self.xlims  :Optional[Tuple[float,float]] = None
-        self.ylims  :Optional[Tuple[float,float]] = None
+        self.aspect  = 'auto'
+        self.figsize = (4.0, 3.0)
+        self.xlims   = None
+        self.ylims   = None
 
         # Direction
         self.reverse_x:bool = False
         self.reverse_y:bool = False
 
         # Ticks
-        self.xticks      :np.ndarray|list[float] = np.array([])
-        self.yticks      :np.ndarray|list[float] = np.array([])
-        self.xtick_labels:np.ndarray|list[str] = np.array([])
-        self.ytick_labels:np.ndarray|list[int] = np.array([])
-        self.xlog        :bool = False
-        self.ylog        :bool = False
+        self.xticks       = np.array([])
+        self.yticks       = np.array([])
+        self.xtick_labels = np.array([])
+        self.ytick_labels = np.array([])
+        self.xlog         = False
+        self.ylog         = False
 
         # TODO: 
-        self.show_axis:bool = True
+        self.show_axis = True
 
-        self._linestyles           :str|Iterable[str]     = []
-        self._linewidths           :float|Iterable[float] = []
-        self._markers              :str|Iterable[str]     = []
-        self._markersizes          :float|Iterable[float] = []
-        self._markerfacecolors     :str|Iterable[str]     = []
-        self._markeredgecolors     :str|Iterable[str]     = []
-        self._markeredgewidths     :float|Iterable        = []
-        self._fillstyles           :str|Iterable[str]     = []
+        self._linestyles            = []
+        self._linewidths            = []
+        self._markers               = []
+        self._markersizes           = []
+        self._markerfacecolors      = []
+        self._markeredgecolors      = []
+        self._markeredgewidths      = []
+        self._fillstyles            = []
 
-        self.line_color_indices  :int|Iterable[int]     = []
-        self.line_color_indices_2:int|Iterable[int]     = []
+        self.line_color_indices   = []
+        self.line_color_indices_2 = []
 
-        self.style:Optional[list[str]|str] = None
-        self.preload_style:bool = False         # Allows overriding style by some settings given in this class such as font settings
-        self.colormap:str = 'tab10'
+        self.style = None
+        self.preload_style = False         # Allows overriding style by some settings given in this class such as font settings
+        self.colormap = 'tab10'
 
-        self.show_legend   :bool                             = True
-        self.combine_legends :bool                             = True
+        self.show_legend    = True
+        self.combine_legends  = True
         self.legend_loc            = 'best'
         self.legend_bbox_to_anchor = None
-        self.legend_ncols   :int                              = 1
+        self.legend_ncols    = 1
         self.legend_frameon        = True # if True, draw the legend on a background patch
         self.legend_framealpha     = 0.8 # legend patch transparency
         self.legend_facecolor      = 'inherit' # inherit from axes.facecolor; or color spec
@@ -95,37 +202,38 @@ class Plot:
         self.legend_columnspacing  = 2.0 # column separation
 
         # Twinx attributes
-        self.y2label:str = ''
-        self.y2lims :Optional[Tuple[float,float]] = None
-        self.y2log:bool = False
-        self.colormap2:str = 'tab10'
-        self.colors: list = []
+        self.y2label = ''
+        self.y2lims  = None
+        self.y2log = False
+        self.colormap2 = 'tab10'
+        self.colors = []
 
         # Filling and hatching
-        self.fill:Optional[float|str] = None
-        self.fill_color:Optional[str] = None
-        self.fill_alpha:Optional[float] = 0.2
-        self.hatch:Optional[str] = 'xxx'
-        self.hatch_linewidth:Optional[float] = 0.5
-        self.hatch_color:Optional[str|tuple] = 'black'
+        self.fill = None
+        self.fill_color = None
+        self.fill_alpha = 0.2
+        self.hatch = 'xxx'
+        self.hatch_linewidth = 0.5
+        self.hatch_color = 'black'
 
-        self.files    :list                  = []
-        self.twinx    :list                  = []
-        self._labels  :str|Iterable[str]     = []
-        self._zorders :Iterable[float]       = []
+        self.files     = []
+        self.twinx     = []
+        self._labels   = []
+        self._zorders  = []
         self._destdir = Path('.')
 
         # Store ndarray data from all files (including twinx)
+        # TODO: underscore?
         self.file_data_list = []
 
-        self.xs :list[np.ndarray] = []
-        self.ys :list[np.ndarray] = []
-        self.x2s :list[np.ndarray] = []
-        self.y2s :list[np.ndarray] = []
+        self.xs :list[np.ndarray]    = []
+        self.ys :list[np.ndarray]    = []
+        self.x2s:list[np.ndarray]    = []
+        self.y2s:list[np.ndarray]    = []
 
         self.figure_dpi = 300
 
-        self.fig:Optional[plt.Figure] = None
+        self.fig = None
         self.ax  = None
         self.ax2 = None
         self.lines = []
