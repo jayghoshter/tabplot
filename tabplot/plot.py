@@ -12,11 +12,10 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from cycler import cycler
 import numpy as np
-from scipy.interpolate import make_interp_spline, BSpline
 from collections.abc import Iterable
 from pathlib import Path
 
-from typing import Optional, Tuple, Union, List
+from typing import Optional, Tuple, Union
 
 class Plot:
     # Labels
