@@ -814,6 +814,9 @@ class Plot:
     def draw(self, clean:bool = True):
         # PREPROCESSING:
 
+        if not self.file_data_list: 
+            return self
+
         self.setup(clean)
 
         labels_iter = iter(self.labels)
@@ -832,6 +835,9 @@ class Plot:
         return self
 
     def show(self,):
+        if not self.file_data_list: 
+            return self
+
         if self.show_legend:
             if self.combine_legends: 
                 self._plot_legend(self.ax, self.lines + self.aux_lines, loc='best')
@@ -844,6 +850,9 @@ class Plot:
         return self
 
     def save(self, filename, destdir=None, dpi=None, bbox_inches='tight', pad_inches=0.05):
+        if not self.file_data_list: 
+            return self
+
         if self.show_legend:
             if self.combine_legends: 
                 self._plot_legend(self.ax, self.lines + self.aux_lines)
