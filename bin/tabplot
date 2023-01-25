@@ -21,14 +21,12 @@ def get_prop_type_hints(input_class):
         if get_type_hints(v.fget) 
     } 
 
-def add_arguments_by_type_hint(parser, input_class, default_dict):
+def add_arguments_by_type_hint(parser, type_hints, default_dict):
     """
     Add arguments automatically using typing information available from the given class
     Assumes default_dict has default values for attributes AND properties.
     """
     
-    type_hints = get_type_hints(input_class)
-    type_hints.update(get_prop_type_hints(input_class))
 
     for key, typeinfo in type_hints.items():
         value = default_dict[key]
@@ -115,7 +113,7 @@ def add_argument_by_type_hint_inner(parser, key, typeinfo, value):
 
 
 
-def parse_args(default_dict):
+def parse_args(type_hints, default_dict):
     """
     Given a default dict of values, parse commandline arguments based on the attribs and properties of a class
     """
@@ -125,7 +123,7 @@ def parse_args(default_dict):
     plotargs = ap.add_argument_group('plotargs', 'kwargs for plot')
     scriptargs = ap.add_argument_group('scriptargs', 'kwargs for current script')
 
-    add_arguments_by_type_hint(plotargs, Plot, default_dict)
+    add_arguments_by_type_hint(plotargs, type_hints, default_dict)
     scriptargs.add_argument("-o", "--output", help="output file")
 
     args = ap.parse_args()
@@ -143,7 +141,10 @@ def main():
 
     default_dict = plot.get_properties()
 
-    plotargs, scriptargs = parse_args(default_dict)
+    type_hints = get_type_hints(Plot)
+    type_hints.update(get_prop_type_hints(Plot))
+
+    plotargs, scriptargs = parse_args(type_hints, default_dict)
 
     # ## TODO: 
     # scriptargs, plotargs = parse_script_args()
