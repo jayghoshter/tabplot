@@ -147,10 +147,6 @@ def main():
 
     plotargs, scriptargs = parse_args(type_hints, default_dict)
 
-    # ## TODO: 
-    # scriptargs, plotargs = parse_script_args()
-    # plot = Plot.from_cmdline_args(plotargs)
-
     plot.from_dict(vars(plotargs)).read().draw()
 
     if scriptargs.output: 
