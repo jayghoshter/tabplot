@@ -1,6 +1,8 @@
 from tabplot import Plot
 
 class BarPlot(Plot):
+    bar_width: float
+
     def __init__(self, **kwargs) -> None:
         self.bar_width = 0.25
         super().__init__(**kwargs)
