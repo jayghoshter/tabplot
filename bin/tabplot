@@ -141,14 +141,7 @@ def parse_args(default_dict):
 def main():
     plot = Plot()
 
-    # TODO: make nice. Possibly provide a getter in the class/instance
-    # Get default values of attributes and properties
-    default_dict = vars(plot)
-    default_dict.update({
-                            k: plot.__getattribute__(k)
-                            for k,v in Plot.__dict__.items()
-                            if isinstance(v, property) 
-                        })
+    default_dict = plot.get_properties()
 
     plotargs, scriptargs = parse_args(default_dict)
 

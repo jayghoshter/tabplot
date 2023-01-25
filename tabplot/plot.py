@@ -396,6 +396,17 @@ class Plot:
     def markerfacecolors(self, value):
         self._markerfacecolors = value 
 
+    # NOTE: While tempting, do not make this a property
+    def get_properties(self):
+        data = vars(self)
+        data.update({
+                        k: self.__getattribute__(k)
+                        for k,v in Plot.__dict__.items()
+                        if isinstance(v, property) 
+                    })
+        return data
+
+
     def setrc(self, rcdict):
         plt.rcParams.update(rcdict)          
 
