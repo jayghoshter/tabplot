@@ -120,10 +120,11 @@ def parse_args(type_hints, default_dict):
 
     ap = argparse.ArgumentParser()
     ap.set_defaults(**default_dict)
-    plotargs = ap.add_argument_group('plotargs', 'kwargs for plot')
-    scriptargs = ap.add_argument_group('scriptargs', 'kwargs for current script')
 
+    plotargs = ap.add_argument_group('plotargs', 'kwargs for plot')
     add_arguments_by_type_hint(plotargs, type_hints, default_dict)
+
+    scriptargs = ap.add_argument_group('scriptargs', 'kwargs for current script')
     scriptargs.add_argument("-o", "--output", help="output file")
 
     args = ap.parse_args()
