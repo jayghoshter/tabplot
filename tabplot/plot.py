@@ -321,13 +321,12 @@ class Plot:
     def zorders(self, value):
         self._zorders= value
 
-    @property
     def n_total_files(self):
         return len(self.files) + len(self.twinx)
 
     @property
     def linestyles(self) -> Iterable:
-        return make_iterable(self._linestyles, 'solid', self.n_total_files, return_list = True)
+        return make_iterable(self._linestyles, 'solid', self.n_total_files(), return_list = True)
 
     @linestyles.setter
     def linestyles(self, value):
@@ -335,7 +334,7 @@ class Plot:
 
     @property
     def linewidths(self) -> Iterable:
-        return make_iterable(self._linewidths, 1, self.n_total_files, return_list = True)
+        return make_iterable(self._linewidths, 1, self.n_total_files(), return_list = True)
 
     @linewidths.setter
     def linewidths(self, value):
@@ -343,7 +342,7 @@ class Plot:
         
     @property
     def markers(self) -> Iterable:
-        return make_iterable(self._markers, None, self.n_total_files, return_list = True)
+        return make_iterable(self._markers, None, self.n_total_files(), return_list = True)
 
     @markers.setter
     def markers(self, value):
@@ -351,7 +350,7 @@ class Plot:
 
     @property
     def markersizes(self) -> Iterable:
-        return make_iterable(self._markersizes, 4.0, self.n_total_files, return_list = True)
+        return make_iterable(self._markersizes, 4.0, self.n_total_files(), return_list = True)
 
     @markersizes.setter
     def markersizes(self, value):
@@ -359,7 +358,7 @@ class Plot:
 
     @property
     def markeredgewidths(self) -> Iterable:
-        return make_iterable(self._markeredgewidths, 1.0, self.n_total_files, return_list = True)
+        return make_iterable(self._markeredgewidths, 1.0, self.n_total_files(), return_list = True)
 
     @markeredgewidths.setter
     def markeredgewidths(self, value):
@@ -368,7 +367,7 @@ class Plot:
     @property
     def markeredgecolors(self) -> Iterable:
         if self._markeredgecolors:
-            return make_iterable(self._markeredgecolors, None, self.n_total_files, return_list = True)
+            return make_iterable(self._markeredgecolors, None, self.n_total_files(), return_list = True)
         else:
             return self.colors
             
@@ -379,7 +378,7 @@ class Plot:
 
     @property
     def fillstyles(self) -> Iterable:
-        return make_iterable(self._fillstyles, 'full', self.n_total_files, return_list = True) 
+        return make_iterable(self._fillstyles, 'full', self.n_total_files(), return_list = True) 
 
     @fillstyles.setter
     def fillstyles(self, value):
@@ -388,7 +387,7 @@ class Plot:
     @property
     def markerfacecolors(self) -> Iterable:
         if self._markerfacecolors:
-            return make_iterable(self._markerfacecolors, None, self.n_total_files, return_list = True)
+            return make_iterable(self._markerfacecolors, None, self.n_total_files(), return_list = True)
         else:
             return self.colors
 
