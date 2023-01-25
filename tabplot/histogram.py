@@ -3,10 +3,14 @@ import numpy as np
 from typing import Optional, Tuple
 
 class Histogram(Plot):
+    bins:int
+    stacked:bool
+    density:bool
+
     def __init__(self, **kwargs) -> None:
-        self.bins:int = 20
-        self.stacked:bool = False
-        self.density:bool = True
+        self.bins = 20
+        self.stacked = False
+        self.density = False
 
         # TODO: 
         self.range:Optional[Tuple[float, float]] = None
@@ -21,9 +25,6 @@ class Histogram(Plot):
 
         super().__init__(**kwargs)
 
-        self.columns = (-1,0)
-        self.show_legend = False
-
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
         n,bins,patches = ax.hist(ys, 
@@ -31,7 +32,5 @@ class Histogram(Plot):
                                  stacked=self.stacked, 
                                  density=self.density,
                                  label=list(labels))
-
-        self._plot_legend(ax)
 
         return lines
