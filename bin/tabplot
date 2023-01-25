@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+import argparse
+
+from tabplot import Plot
+import numpy as np
+from pathlib import Path
+from rich import print
+
+from collections.abc import Iterable
+
+from typing import get_type_hints, get_origin, get_args
+from typing import Union, Any
+from types import UnionType
+    
+def get_prop_type_hints(input_class):
+    """Return type hints for @properties for a given class"""
+    return { 
+        k:get_type_hints(v.fget)['return'] 
+        for k,v in input_class.__dict__.items() 
+        if isinstance(v, property) 
+        if get_type_hints(v.fget) 
+    } 
+
+def add_arguments_by_type_hint(parser, input_class, default_dict):
+    """
+    Add arguments automatically using typing information available from the given class
+    Assumes default_dict has default values for attributes AND properties.
+    """
+    
+    type_hints = get_type_hints(input_class)
+    type_hints.update(get_prop_type_hints(input_class))
+
+    for key, typeinfo in type_hints.items():
+        value = default_dict[key]
+
+        # For keys starting with _, we know that we use properties named
+        # without underscores. __init__ also takes care that properties are
+        # also set in addition to attributes. So we can get away with just
+        # ignoring the _ when creating the parser arg
+        # We assume here that the property return type hints are available in
+        # `type_hints` and default values are available in default_dict
+        if key[0] != '_': 
+            add_argument_by_type_hint_inner(parser, key, typeinfo, value)
+
+def add_argument_by_type_hint_inner(parser, key, typeinfo, value):
+    """ 
+    Given a key (attrib/property) and its type and default value, 
+    add the appropriate argument to the given parser.
+    """
+
+    key_type_origin = get_origin(typeinfo) 
+    key_type_args = get_args(typeinfo)
+
+    if key_type_origin is Union or key_type_origin is UnionType:
+        valid_types = tuple( t for t in key_type_args if t is not type(None))
+        valid_types_origins = list(map(get_origin, valid_types))
+        valid_types_args= list(map(get_args, valid_types))
+
+        # print( f"{key}: {valid_types}")
+        # print( f"    > {valid_types_origins}: {valid_types_args}")
+
+        if len(valid_types) == 1:
+            add_argument_by_type_hint_inner(parser, key, valid_types[0], value)
+        elif list in valid_types_origins: 
+            ind = valid_types_origins.index(list)
+            add_argument_by_type_hint_inner(parser, key, valid_types[ind], value)
+        elif str in valid_types: 
+            parser.add_argument(f'--{key.replace("_", "-")}')
+        elif np.ndarray in valid_types:
+            # FIXME: ?
+            parser.add_argument(f'--{key.replace("_", "-")}', nargs='*', type=float)
+        elif Iterable in valid_types_origins: 
+            ind = valid_types_origins.index(Iterable)
+            add_argument_by_type_hint_inner(parser, key, valid_types[ind], value)
+        else: 
+            # Use the first specified valid type
+            add_argument_by_type_hint_inner(parser, key, valid_types[0], value)
+
+    elif key_type_origin in [list, Iterable]:
+        argtype = key_type_args[0] if all(x == key_type_args[0] for x in key_type_args) else Any
+        parser.add_argument(f'--{key.replace("_", "-")}', nargs='*', type=argtype)
+
+    elif key_type_origin is tuple:
+        argtype = key_type_args[0] if all(x == key_type_args[0] for x in key_type_args) else Any
+        parser.add_argument(f'--{key.replace("_", "-")}', nargs=len(key_type_args), type=argtype)
+
+    elif typeinfo is bool: 
+        if value: 
+            parser.add_argument(f'--{key.replace("_", "-")}', action=argparse.BooleanOptionalAction)
+        else: 
+            parser.add_argument(f'--{key.replace("_", "-")}', action='store_true', default=False)
+
+    elif typeinfo in [list, tuple, Iterable]:
+        parser.add_argument(f'--{key.replace("_", "-")}', nargs='*')
+
+    elif typeinfo is float:
+        parser.add_argument(f'--{key.replace("_", "-")}', type=float)
+
+    elif typeinfo is int:
+        parser.add_argument(f'--{key.replace("_", "-")}', type=int)
+
+    elif typeinfo is str: 
+        parser.add_argument(f'--{key.replace("_", "-")}')
+
+    elif typeinfo is Path: 
+        parser.add_argument(f'--{key.replace("_", "-")}', type=Path)
+
+    elif callable(typeinfo): 
+        parser.add_argument(f'--{key.replace("_", "-")}', type=typeinfo)
+
+    else:
+        print(f"Not implemented type handling for {key} of type {typeinfo} with {value}.")
+        print(f"    > Origin: {key_type_origin}")
+        print(f"    > Args: {key_type_args}")
+
+
+
+def parse_args(default_dict):
+    """
+    Given a default dict of values, parse commandline arguments based on the attribs and properties of a class
+    """
+
+    ap = argparse.ArgumentParser()
+    ap.set_defaults(**default_dict)
+    plotargs = ap.add_argument_group('plotargs', 'kwargs for plot')
+    scriptargs = ap.add_argument_group('scriptargs', 'kwargs for current script')
+
+    add_arguments_by_type_hint(plotargs, Plot, default_dict)
+    scriptargs.add_argument("-o", "--output", help="output file")
+
+    args = ap.parse_args()
+
+    arg_groups={}
+    for group in ap._action_groups:
+        group_dict={a.dest:getattr(args,a.dest,None) for a in group._group_actions}
+        arg_groups[group.title]=argparse.Namespace(**group_dict)
+
+    return arg_groups['plotargs'], arg_groups['scriptargs']
+
+
+def main():
+    plot = Plot()
+
+    # TODO: make nice. Possibly provide a getter in the class/instance
+    # Get default values of attributes and properties
+    default_dict = vars(plot)
+    default_dict.update({
+                            k: plot.__getattribute__(k)
+                            for k,v in Plot.__dict__.items()
+                            if isinstance(v, property) 
+                        })
+
+    plotargs, scriptargs = parse_args(default_dict)
+
+    # ## TODO: 
+    # scriptargs, plotargs = parse_script_args()
+    # plot = Plot.from_cmdline_args(plotargs)
+
+    plot.from_dict(vars(plotargs)).read().draw()
+
+    if scriptargs.output: 
+        plot.save(scriptargs.output)
+    else:
+        plot.show()
+
+if __name__ == "__main__":
+    main()
