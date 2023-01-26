@@ -1,5 +1,5 @@
 __version__ = "0.2"
-__author__ = 'Jayghosh Rao'
+__author__ = "Jayghosh Rao"
 
 from . import utils
 from . import postprocessing
