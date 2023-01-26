@@ -15,7 +15,7 @@ import numpy as np
 from collections.abc import Iterable
 from pathlib import Path
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Literal
 
 
 class Plot:
@@ -44,6 +44,9 @@ class Plot:
     ytick_labels: np.ndarray | list[int]
     xlog: bool
     ylog: bool
+
+    sciticks: Optional[Literal['x', 'y', 'both']]
+    sciticks2: Optional[Literal['x', 'y', 'both']]
 
     show_axis: bool
 
@@ -154,6 +157,9 @@ class Plot:
         self.ytick_labels = np.array([])
         self.xlog = False
         self.ylog = False
+
+        self.sciticks = None
+        self.sciticks2 = None
 
         self.show_axis = True
 
@@ -628,6 +634,13 @@ class Plot:
             self.ax.axis('off')
             if self.ax2:
                 self.ax2.axis('off')
+
+        if self.sciticks:
+            self.ax.ticklabel_format(style='sci', axis=self.sciticks, scilimits=(0,0))
+
+        if self.sciticks2: 
+            if self.ax2: 
+                self.ax2.ticklabel_format(style='sci', axis=self.sciticks, scilimits=(0,0))
 
     def read(
         self,
