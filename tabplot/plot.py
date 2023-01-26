@@ -45,7 +45,6 @@ class Plot:
     xlog: bool
     ylog: bool
 
-    # TODO:
     show_axis: bool
 
     style: Optional[list[str] | str]
@@ -157,7 +156,6 @@ class Plot:
         self.xlog = False
         self.ylog = False
 
-        # TODO:
         self.show_axis = True
 
         self._linestyles = []
@@ -627,6 +625,11 @@ class Plot:
         if self.reverse_y:
             ylim = self.ax.get_ylim()
             self.ax.set_ylim((ylim[1], ylim[0]))
+
+        if not self.show_axis:
+            self.ax.axis('off')
+            if self.ax2:
+                self.ax2.axis('off')
 
     def read(
         self,
