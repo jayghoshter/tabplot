@@ -111,8 +111,7 @@ class Plot:
     line_color_indices_2: int | Iterable[int]
 
     # Store ndarray data from all files (including twinx)
-    # TODO: underscore?
-    file_data_list: list
+    _file_data_list: list
 
     figure_dpi: int
 
@@ -225,8 +224,7 @@ class Plot:
         self._destdir = Path(".")
 
         # Store ndarray data from all files (including twinx)
-        # TODO: underscore?
-        self.file_data_list = []
+        self._file_data_list = []
 
         self.xs: list[np.ndarray] = []
         self.ys: list[np.ndarray] = []
@@ -659,7 +657,7 @@ class Plot:
         self.x2s, self.y2s = self._extract_coordinate_data(file_data_list_2, columns)
         self._process_tick_data(file_data_list_2, xticks_column, xticklabels_column)
 
-        self.file_data_list = file_data_list + file_data_list_2
+        self._file_data_list = file_data_list + file_data_list_2
 
         return self
 
@@ -863,7 +861,7 @@ class Plot:
         self, labels_column: int, paddings: list[Tuple[float, float]]
     ):
         padding_iter = iter(paddings)
-        file_data_iter = iter(self.file_data_list)
+        file_data_iter = iter(self._file_data_list)
         for x, y, file_data in zip(self.xs, self.ys, file_data_iter):
             annots = iter(file_data[labels_column])
             for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
@@ -897,7 +895,7 @@ class Plot:
     def draw(self, clean: bool = True):
         # PREPROCESSING:
 
-        if not self.file_data_list:
+        if not self._file_data_list:
             return self
 
         self.setup(clean)
@@ -922,7 +920,7 @@ class Plot:
     def show(
         self,
     ):
-        if not self.file_data_list:
+        if not self._file_data_list:
             return self
 
         if self.show_legend:
@@ -939,7 +937,7 @@ class Plot:
     def save(
         self, filename, destdir=None, dpi=None, bbox_inches="tight", pad_inches=0.05
     ):
-        if not self.file_data_list:
+        if not self._file_data_list:
             return self
 
         if self.show_legend:
