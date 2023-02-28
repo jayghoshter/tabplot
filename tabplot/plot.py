@@ -787,19 +787,16 @@ class Plot:
         for file_data in file_data_list:
             # If we have more than just y-data
             if file_data.ndim > 1:
-                xticks = (
+                self.xticks = (
                     file_data[xticks_column].astype("float64")
                     if xticks_column is not None
                     else np.array([])
                 )
-                xticklabels = (
+                self.xtick_labels = (
                     file_data[xticklabels_column]
                     if xticklabels_column is not None
                     else np.array([])
                 )
-
-                if len(xticks) or len(xticklabels):
-                    self._setup_ticks(xticks=xticks, xtick_labels=xticklabels)
 
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
