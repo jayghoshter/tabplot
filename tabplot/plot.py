@@ -794,7 +794,7 @@ class Plot:
                 )
                 xticklabels = (
                     file_data[xticklabels_column]
-                    if xticks_column is not None
+                    if xticklabels_column is not None
                     else np.array([])
                 )
 
