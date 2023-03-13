@@ -4,7 +4,7 @@ from tabplot.utils import normalize
 from tabplot.utils import scale_axis
 from tabplot.utils import smoothen_xys
 from tabplot.utils import strim
-from tabplot.postprocessing import fit_lines
+from tabplot.postprocessing import fit_lines, parametric_line
 from tabplot.postprocessing import extrapolate
 from rich import print
 
@@ -900,6 +900,13 @@ class Plot:
     def vlines(self, xvals, **kwargs):
         ylim = self.ax.get_ylim()
         self.ax.vlines(xvals, ylim[0], ylim[1], **kwargs)
+        return self
+
+    def mcline(self, m, c, label='mcline', zorder=0):
+        line = parametric_line(
+            self.ax, m, c, label=label, zorder=zorder
+        )
+        self.lines.extend(line)
         return self
 
     def draw(self, clean: bool = True):
