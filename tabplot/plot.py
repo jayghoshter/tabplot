@@ -19,8 +19,7 @@ from typing import Optional, Tuple, Union, Literal
 import inspect
 
 class Plot:
-    files: list = []
-    twinx: list = []
+
 
     # Labels
     title: str = ""
@@ -134,6 +133,9 @@ class Plot:
     def __init__(self, **kwargs) -> None:
 
         print("Initializing Plot")
+
+        self.files: list = []
+        self.twinx: list = []
 
         self.xs: list[np.ndarray] = []
         self.ys: list[np.ndarray] = []

@@ -125,6 +125,8 @@ def parse_args(type_hints, default_dict):
 
     plotargs = ap.add_argument_group('plotargs', 'kwargs for plot')
     add_arguments_by_type_hint(plotargs, type_hints, default_dict)
+    plotargs.add_argument('--twinx', nargs='*', default=[], help="Files to plot on ax2")
+    plotargs.add_argument('files', nargs='*', default=[], help="Files to plot on ax1")
 
     scriptargs = ap.add_argument_group('scriptargs', 'kwargs for current script')
     scriptargs.add_argument("-o", "--output", help="output file")
