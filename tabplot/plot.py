@@ -16,229 +16,129 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from typing import Optional, Tuple, Union, Literal
-
+import inspect
 
 class Plot:
-    files: list
-    twinx: list
+    files: list = []
+    twinx: list = []
 
     # Labels
-    title: str
-    xlabel: str
-    ylabel: str
-    xlabel_loc: str
-    ylabel_loc: str
-    y2label_loc: str
+    title: str = ""
+    xlabel: str = ""
+    ylabel: str = ""
+    xlabel_loc: str = "center"
+    ylabel_loc: str = "center"
+    y2label_loc: str = "center"
 
     # Size and dimension
-    aspect: str
-    figsize: Tuple[float, float]
-    xlims: Optional[Tuple[float, float]]
-    ylims: Optional[Tuple[float, float]]
+    aspect: str = "auto"
+    figsize: Tuple[float, float] = (4.0, 3.0)
+    xlims: Optional[Tuple[float, float]] = None
+    ylims: Optional[Tuple[float, float]] = None
 
     # Direction
-    reverse_x: bool
-    reverse_y: bool
+    reverse_x: bool = False
+    reverse_y: bool = False
 
     # Ticks
-    xticks: np.ndarray | list[float]
-    yticks: np.ndarray | list[float]
-    xtick_labels: np.ndarray | list[str]
-    ytick_labels: np.ndarray | list[int]
-    xlog: bool
-    ylog: bool
+    xticks: np.ndarray | list[float] = np.array([])
+    yticks: np.ndarray | list[float] = np.array([])
+    xtick_labels: np.ndarray | list[str] = np.array([])
+    ytick_labels: np.ndarray | list[int] = np.array([])
+    xlog: bool = False
+    ylog: bool = False
 
-    sciticks: Optional[Literal['x', 'y', 'both']]
-    sciticks2: Optional[Literal['x', 'y', 'both']]
+    sciticks: Optional[Literal['x', 'y', 'both']] = None
+    sciticks2: Optional[Literal['x', 'y', 'both']] = None
 
-    show_axis: bool
+    show_axis: bool = True
 
-    style: Optional[list[str] | str]
-    preload_style: bool
-    colormap: str
+    style: Optional[list[str] | str] = None
 
-    show_legend: bool
-    combine_legends: bool
-    legend_loc: str
-    legend_bbox_to_anchor: Optional[Tuple[float, float]]
-    legend_ncols: int
-    legend_frameon: bool
-    legend_framealpha: float
-    legend_facecolor: str
-    legend_edgecolor: str
-    legend_fancybox: bool
-    legend_shadow: bool
-    legend_numpoints: int
-    legend_scatterpoints: int
-    legend_markerscale: float
-    legend_fontsize: str
-    legend_labelcolor: Optional[str]
-    legend_title_fontsize: Optional[str]
-    legend_borderpad: float
-    legend_labelspacing: float
-    legend_handlelength: float
-    legend_handleheight: float
-    legend_handletextpad: float
-    legend_borderaxespad: float
-    legend_columnspacing: float
+    # Allows overriding style by some settings given in this class such as font settings
+    preload_style: bool = False
+    colormap: str = "tab10"
+
+    show_legend: bool = True
+    combine_legends: bool = True
+    legend_loc: str = "best"
+    legend_bbox_to_anchor: Optional[Tuple[float, float]] = None
+    legend_ncols: int = 1 
+    legend_frameon: bool = True # if True, draw the legend on a background patch
+    legend_framealpha: float = 0.8 # legend patch transparency
+    legend_facecolor: str = "inherit" # inherit from axes.facecolor; or color spec
+    legend_edgecolor: str = "inherit"
+    legend_fancybox: bool = True # if True, use a rounded box for the
+    legend_shadow: bool = False # if True, give background a shadow effect
+    legend_numpoints: int = 1 # the number of marker points in the legend line
+    legend_scatterpoints: int = 1 # number of scatter points
+    legend_markerscale: float = 1.0 # the relative size of legend markers vs. original
+    legend_fontsize: str = "medium"
+    legend_labelcolor: Optional[str] = None
+    legend_title_fontsize: Optional[str] = None # None sets to the same as the default axes.
+    legend_borderpad: float = 0.4 # border whitespace
+    legend_labelspacing: float = 0.5 # the vertical space between the legend entries
+    legend_handlelength: float = 2.0 # the length of the legend lines
+    legend_handleheight: float = 0.7 # the height of the legend handle
+    legend_handletextpad: float = 0.8 # the space between the legend line and legend text
+    legend_borderaxespad: float = 0.5 # the border between the axes and legend edge
+    legend_columnspacing: float = 2.0 # column separation
 
     # Twinx attributes
-    y2label: str
-    y2lims: Optional[Tuple[float, float]]
-    y2log: bool
-    colormap2: str
-    colors: list
+    y2label: str = ""
+    y2lims: Optional[Tuple[float, float]] = None
+    y2log: bool = False
+    colormap2: str = "tab10"
+    colors: list = []
 
     # Filling and hatching
-    fill: Optional[float | str]
-    fill_color: Optional[str]
-    fill_alpha: Optional[float]
-    hatch: Optional[str]
-    hatch_linewidth: Optional[float]
-    hatch_color: Optional[str | tuple]
+    fill: Optional[float | str] = None
+    fill_color: Optional[str] = None
+    fill_alpha: Optional[float] = 0.2
+    hatch: Optional[str] = "xxx"
+    hatch_linewidth: Optional[float] = 0.5
+    hatch_color: Optional[str | tuple] = "black"
 
 
-    _labels: str | Iterable[str]
-    _zorders: Iterable[float]
-    _destdir: Optional[Path]
+    _labels: str | Iterable[str] = []
+    _zorders: Iterable[float] = []
+    _destdir: Optional[Path] = Path(".")
 
-    _linestyles: str | Iterable[str]
-    _linewidths: float | Iterable[float]
-    _markers: str | Iterable[str]
-    _markersizes: float | Iterable[float]
-    _markerfacecolors: str | Iterable[str]
-    _markeredgecolors: str | Iterable[str]
-    _markeredgewidths: float | Iterable[float]
-    _fillstyles: str | Iterable[str]
+    _linestyles: str | Iterable[str] = []
+    _linewidths: float | Iterable[float] = []
+    _markers: str | Iterable[str] = []
+    _markersizes: float | Iterable[float] = []
+    _markerfacecolors: str | Iterable[str] = []
+    _markeredgecolors: str | Iterable[str] = []
+    _markeredgewidths: float | Iterable[float] = []
+    _fillstyles: str | Iterable[str] = []
 
-    line_color_indices: int | Iterable[int]
-    line_color_indices_2: int | Iterable[int]
+    line_color_indices: int | Iterable[int] = []
+    line_color_indices_2: int | Iterable[int] = []
 
     # Store ndarray data from all files (including twinx)
-    _file_data_list: list
+    _file_data_list: list = []
 
-    figure_dpi: int
+    figure_dpi: int = 300
 
     # lines    : list
     # aux_lines: list
 
-    font_family: str
-    font_style: str
-    font_variant: str
-    font_weight: str
-    font_stretch: str
-    font_size: float
+    font_family: str = "sans-serif"
+    font_style: str = "normal"
+    font_variant: str = "normal"
+    font_weight: str = "normal"
+    font_stretch: str = "normal"
+    font_size: float = 10.0
 
     def __init__(self, **kwargs) -> None:
 
         print("Initializing Plot")
 
-        # Labels
-        self.title = ""
-        self.xlabel = ""
-        self.ylabel = ""
-        self.xlabel_loc = "center"
-        self.ylabel_loc = "center"
-        self.y2label_loc = "center"
-
-        # Size and dimension
-        self.aspect = "auto"
-        self.figsize = (4.0, 3.0)
-        self.xlims = None
-        self.ylims = None
-
-        # Direction
-        self.reverse_x: bool = False
-        self.reverse_y: bool = False
-
-        # Ticks
-        self.xticks = np.array([])
-        self.yticks = np.array([])
-        self.xtick_labels = np.array([])
-        self.ytick_labels = np.array([])
-        self.xlog = False
-        self.ylog = False
-
-        self.sciticks = None
-        self.sciticks2 = None
-
-        self.show_axis = True
-
-        self._linestyles = []
-        self._linewidths = []
-        self._markers = []
-        self._markersizes = []
-        self._markerfacecolors = []
-        self._markeredgecolors = []
-        self._markeredgewidths = []
-        self._fillstyles = []
-
-        self.line_color_indices = []
-        self.line_color_indices_2 = []
-
-        self.style = None
-        self.preload_style = False  # Allows overriding style by some settings given in this class such as font settings
-        self.colormap = "tab10"
-
-        self.show_legend = True
-        self.combine_legends = True
-        self.legend_loc = "best"
-        self.legend_bbox_to_anchor = None
-        self.legend_ncols = 1
-        self.legend_frameon = True  # if True, draw the legend on a background patch
-        self.legend_framealpha = 0.8  # legend patch transparency
-        self.legend_facecolor = "inherit"  # inherit from axes.facecolor; or color spec
-        self.legend_edgecolor = "inherit"
-        self.legend_fancybox = True  # if True, use a rounded box for the
-        self.legend_shadow = False  # if True, give background a shadow effect
-        self.legend_numpoints = 1  # the number of marker points in the legend line
-        self.legend_scatterpoints = 1  # number of scatter points
-        self.legend_markerscale = (
-            1.0  # the relative size of legend markers vs. original
-        )
-        self.legend_fontsize = "medium"
-        self.legend_labelcolor = None
-        self.legend_title_fontsize = None  # None sets to the same as the default axes.
-        self.legend_borderpad = 0.4  # border whitespace
-        self.legend_labelspacing = 0.5  # the vertical space between the legend entries
-        self.legend_handlelength = 2.0  # the length of the legend lines
-        self.legend_handleheight = 0.7  # the height of the legend handle
-        self.legend_handletextpad = (
-            0.8  # the space between the legend line and legend text
-        )
-        self.legend_borderaxespad = 0.5  # the border between the axes and legend edge
-        self.legend_columnspacing = 2.0  # column separation
-
-        # Twinx attributes
-        self.y2label = ""
-        self.y2lims = None
-        self.y2log = False
-        self.colormap2 = "tab10"
-        self.colors = []
-
-        # Filling and hatching
-        self.fill = None
-        self.fill_color = None
-        self.fill_alpha = 0.2
-        self.hatch = "xxx"
-        self.hatch_linewidth = 0.5
-        self.hatch_color = "black"
-
-        self.files = []
-        self.twinx = []
-        self._labels = []
-        self._zorders = []
-        self._destdir = Path(".")
-
-        # Store ndarray data from all files (including twinx)
-        self._file_data_list = []
-
         self.xs: list[np.ndarray] = []
         self.ys: list[np.ndarray] = []
         self.x2s: list[np.ndarray] = []
         self.y2s: list[np.ndarray] = []
-
-        self.figure_dpi = 300
 
         self.fig = None
         self.ax = None
@@ -246,21 +146,14 @@ class Plot:
         self.lines = []
         self.aux_lines = []
 
-        self.font_family = "sans-serif"
-        self.font_style = "normal"
-        self.font_variant = "normal"
-        self.font_weight = "normal"
-        self.font_stretch = "normal"
-        self.font_size = 10.0
+        default_instance_attributes = inspect.getmembers(self, lambda x: not(inspect.isroutine(x)))
+        default_instance_attributes = {k:v for k,v in default_instance_attributes if not k.startswith('_')}
+        self._default_instance_attributes = default_instance_attributes
 
         for key, value in kwargs.items():
             if key in self.__dict__:
                 setattr(self, key, value)
-            elif key in [
-                p
-                for p in dir(self.__class__)
-                if isinstance(getattr(self.__class__, p), property)
-            ]:
+            elif key in self._default_instance_attributes:
                 setattr(self, key, value)
             else:
                 raise NameError(f"No such attribute: {key}")
@@ -269,11 +162,7 @@ class Plot:
         for key, value in data.items():
             if key in self.__dict__:
                 setattr(self, key, value)
-            elif key in [
-                p
-                for p in dir(self.__class__)
-                if isinstance(getattr(self.__class__, p), property)
-            ]:
+            elif key in self._default_instance_attributes:
                 setattr(self, key, value)
             else:
                 raise NameError(f"No such attribute: {key}")
@@ -425,17 +314,25 @@ class Plot:
         self._markerfacecolors = value
 
     # NOTE: While tempting, do not make this a property
-    # TODO: Consider making it a classmethod
-    def get_properties(self):
-        data = vars(self)
-        data.update(
-            {
-                k: self.__getattribute__(k)
-                for k, v in Plot.__dict__.items()
-                if isinstance(v, property)
-            }
-        )
-        return data
+    @classmethod
+    def get_properties(cls):
+        class_attributes = inspect.getmembers(cls, lambda x: not(inspect.isroutine(x) or isinstance(x, property)))
+        class_attributes = {k:v for k,v in class_attributes if not k.startswith('_')}
+
+        class_properties = inspect.getmembers(cls, lambda x: isinstance(x, property))
+        class_properties = {k:getattr(cls, '_'+k) for k,v in class_properties if not k.startswith('_')}
+
+        # NOTE: Python 3.9+ merging dicts
+        return class_attributes | class_properties
+
+        # data = vars(self)
+        # data.update(
+        #     {
+        #         k: self.__getattribute__(k)
+        #         for k, v in Plot.__dict__.items()
+        #         if isinstance(v, property)
+        #     }
+        # )
 
     def setrc(self, rcdict):
         plt.rcParams.update(rcdict)

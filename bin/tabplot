@@ -29,8 +29,6 @@ def add_arguments_by_type_hint(parser, type_hints, default_dict):
     
 
     for key, typeinfo in type_hints.items():
-        value = default_dict[key]
-
         # For keys starting with _, we know that we use properties named
         # without underscores. __init__ also takes care that properties are
         # also set in addition to attributes. So we can get away with just
@@ -38,6 +36,7 @@ def add_arguments_by_type_hint(parser, type_hints, default_dict):
         # We assume here that the property return type hints are available in
         # `type_hints` and default values are available in default_dict
         if key[0] != '_': 
+            value = default_dict[key]
             add_argument_by_type_hint_inner(parser, key, typeinfo, value)
 
 def add_argument_by_type_hint_inner(parser, key, typeinfo, value):
@@ -141,15 +140,15 @@ def parse_args(type_hints, default_dict):
 
 
 def main():
-    plot = Plot()
 
-    default_dict = plot.get_properties()
+    default_dict = Plot.get_properties()
 
     type_hints = get_type_hints(Plot)
     type_hints.update(get_prop_type_hints(Plot))
 
     plotargs, scriptargs = parse_args(type_hints, default_dict)
 
+    plot = Plot()
     plot.from_dict(vars(plotargs)).read().draw()
 
     if scriptargs.output: 
