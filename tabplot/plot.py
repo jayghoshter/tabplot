@@ -623,6 +623,8 @@ class Plot:
             if self.y2lims:
                 ax2.set_ylim(self.y2lims)
 
+            ax2.autoscale(tight=True)
+
         # WARNING: If setup is called more than once, this may be messed up
         if self.reverse_x:
             xlim = self.ax.get_xlim()
@@ -928,6 +930,7 @@ class Plot:
 
         lines2 = []
         if self.twinx:
+            print(f"Processing twin files: {self.twinx}")
             lines2 = self._plot_data(
                 self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter
             )
