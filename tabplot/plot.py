@@ -19,6 +19,9 @@ from typing import Optional, Tuple, Union, Literal
 
 
 class Plot:
+    files: list
+    twinx: list
+
     # Labels
     title: str
     xlabel: str
@@ -94,8 +97,6 @@ class Plot:
     hatch_linewidth: Optional[float]
     hatch_color: Optional[str | tuple]
 
-    files: list
-    twinx: list
 
     _labels: str | Iterable[str]
     _zorders: Iterable[float]
@@ -424,6 +425,7 @@ class Plot:
         self._markerfacecolors = value
 
     # NOTE: While tempting, do not make this a property
+    # TODO: Consider making it a classmethod
     def get_properties(self):
         data = vars(self)
         data.update(
