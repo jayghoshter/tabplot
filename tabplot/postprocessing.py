@@ -36,8 +36,9 @@ def fit_lines(ax, xs, ys, xlog=False, ylog=False, labels=None, zorders=None, **k
     for key in kwargs:
         kwargs[key] = make_iterable(kwargs[key], None, len(xs), return_list=True)
 
-    custom_cycler = cycler(**kwargs)
-    ax.set_prop_cycle(custom_cycler)
+    if kwargs: 
+        custom_cycler = cycler(**kwargs)
+        ax.set_prop_cycle(custom_cycler)
 
     for x, y, label, zorder in zip(xs, ys, labels, zorders):
         X = np.array(x)
