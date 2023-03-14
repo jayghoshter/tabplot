@@ -58,6 +58,8 @@ class BarPlot(Plot):
         if len(xticks) or len(xtick_labels):
             plt.xticks(xtx, xtl)
 
+        plt.xticks(rotation=self.xticklabels_rotation)
+
         ytx, ytl = plt.yticks()
 
         if len(yticks):
@@ -67,3 +69,5 @@ class BarPlot(Plot):
 
         if len(yticks) or len(ytick_labels):
             plt.yticks(ytx, ytl)
+
+        plt.yticks(rotation=self.yticklabels_rotation)

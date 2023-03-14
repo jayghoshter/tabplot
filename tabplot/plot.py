@@ -44,6 +44,8 @@ class Plot:
     yticks: np.ndarray | list[float] = np.array([])
     xtick_labels: np.ndarray | list[str] = np.array([])
     ytick_labels: np.ndarray | list[int] = np.array([])
+    xticklabels_rotation: float = 0.0
+    yticklabels_rotation: float = 0.0
     xlog: bool = False
     ylog: bool = False
 
@@ -473,6 +475,8 @@ class Plot:
         if len(xticks) or len(xtick_labels):
             plt.xticks(xtx, xtl)
 
+        plt.xticks(rotation=self.xticklabels_rotation)
+
         ytx, ytl = plt.yticks()
 
         if len(yticks):
@@ -482,6 +486,8 @@ class Plot:
 
         if len(yticks) or len(ytick_labels):
             plt.yticks(ytx, ytl)
+
+        plt.yticks(rotation=self.yticklabels_rotation)
 
     def _setup_axes(
         self,
