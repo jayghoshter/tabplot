@@ -861,7 +861,7 @@ class Plot:
     def draw(self, clean: bool = True):
         # PREPROCESSING:
 
-        if not self._file_data_list:
+        if not self.ys: 
             return self
 
         self.setup(clean)
@@ -887,7 +887,7 @@ class Plot:
     def show(
         self,
     ):
-        if not self._file_data_list:
+        if not self.ys:
             return self
 
         if self.show_legend:
@@ -904,7 +904,7 @@ class Plot:
     def save(
         self, filename, destdir=None, dpi=None, bbox_inches="tight", pad_inches=0.05
     ):
-        if not self._file_data_list:
+        if not self.ys:
             return self
 
         if self.show_legend:
