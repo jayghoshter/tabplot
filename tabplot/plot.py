@@ -132,6 +132,8 @@ class Plot:
     font_stretch: str = "normal"
     font_size: float = 10.0
 
+    overwrite: bool = True
+
     def __init__(self, **kwargs) -> None:
 
         print("Initializing Plot")
@@ -916,10 +918,13 @@ class Plot:
         return self
 
     def save(
-        self, filename, destdir=None, dpi=None, bbox_inches="tight", pad_inches=0.05
+        self, filename, destdir=None, dpi=None, bbox_inches="tight", pad_inches=0.05, overwrite=None
     ):
         if not self.ys:
             return self
+
+        if overwrite is None:
+            overwrite = self.overwrite
 
         if self.show_legend:
             if self.combine_legends:
@@ -937,10 +942,11 @@ class Plot:
 
         destdir.mkdir(exist_ok=True)
 
-        self.fig.savefig(
-            destdir / filename, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches
-        )
-        print(f"Saved as {destdir / filename}\n")
+        if overwrite:
+            self.fig.savefig(
+                destdir / filename, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches
+            )
+            print(f"Saved as {destdir / filename}\n")
         return self
 
     def __rich_repr__(self):
