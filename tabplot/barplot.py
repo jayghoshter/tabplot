@@ -18,7 +18,7 @@ class BarPlot(Plot):
             width = self.bar_width
             shiftwidth = (num_files - 1) * width / 2.0
             position = [bar_count * width - shiftwidth + i for i in indices]
-            line = ax.bar(position, y, width=width, label=label.replace("_", "-"))
+            line = ax.bar(position, y, width=width, label=label)
             lines.append(line)
             bar_count = bar_count + 1
             # if args['xticks_column'] is not None:
