@@ -209,9 +209,9 @@ class Plot:
     @property
     def labels(self):
         if self._labels:
-            if len(self._labels) == len(self.files + self.twinx):
+            if len(self._labels) == self.n_total_files():
                 return self._labels
-        return self.files + self.twinx
+        return [None] * self.n_total_files()
 
     @labels.setter
     def labels(self, value):
@@ -220,16 +220,18 @@ class Plot:
     @property
     def zorders(self):
         if self._zorders:
-            if len(self._zorders) == len(self.files + self.twinx):
+            if len(self._zorders) == self.n_total_files():
                 return self._zorders
-        return np.linspace(0, 1, len(self.files + self.twinx))
+        # return np.linspace(0, 1, len(self.files + self.twinx))
+        return np.linspace(0, 1, self.n_total_files())
 
     @zorders.setter
     def zorders(self, value):
         self._zorders = value
 
     def n_total_files(self):
-        return len(self.files) + len(self.twinx)
+        # return len(self.xs)
+        return len(self.xs) + len(self.x2s)
 
     @property
     def linestyles(self) -> Iterable:
@@ -367,7 +369,7 @@ class Plot:
 
     def _update_params(self):
 
-        n_total_files = len(self.files) + len(self.twinx)
+        n_total_files = self.n_total_files()
 
         cmap = mpl.cm.get_cmap(name=self.colormap)
         if "colors" in cmap.__dict__:
@@ -389,8 +391,8 @@ class Plot:
         self.props_cycler = self._get_props_cycler()
 
         if self.twinx:
-            self.props_cycler2 = self.props_cycler[len(self.files) :].concat(
-                self.props_cycler[: len(self.files)]
+            self.props_cycler2 = self.props_cycler[len(self.files):].concat(
+                self.props_cycler[:len(self.files)]
             )
 
         # Set rc params
@@ -437,14 +439,14 @@ class Plot:
 
     def _get_props_cycler(self):
         main_c = cycler(
-            color=self.colors[: len(self.files + self.twinx)],
+            color=self.colors[: self.n_total_files()],
             linestyle=self.linestyles,
             linewidth=self.linewidths,
             marker=self.markers,
             markersize=self.markersizes,
             markeredgewidth=self.markeredgewidths,
-            markeredgecolor=self.markeredgecolors[: len(self.files + self.twinx)],
-            markerfacecolor=self.markerfacecolors[: len(self.files + self.twinx)],
+            markeredgecolor=self.markeredgecolors[: self.n_total_files()],
+            markerfacecolor=self.markerfacecolors[: self.n_total_files()],
             fillstyle=self.fillstyles,
         )
 
