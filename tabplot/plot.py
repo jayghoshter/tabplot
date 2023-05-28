@@ -101,7 +101,7 @@ class Plot:
     hatch_color: Optional[str | tuple] = "black"
 
 
-    _labels: str | Iterable[str] = []
+    _labels: Iterable[str] = []
     _zorders: Iterable[float] = []
     _destdir: Optional[Path] = Path(".")
 
