@@ -342,30 +342,39 @@ class Plot:
 
     def setrc(self, rcdict):
         plt.rcParams.update(rcdict)
+        return self
 
     def setrc_axes(self, rcdict):
         plt.rcParams.update({f"axes.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_xtick(self, rcdict):
         plt.rcParams.update({f"xtick.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_ytick(self, rcdict):
         plt.rcParams.update({f"ytick.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_grid(self, rcdict):
         plt.rcParams.update({f"grid.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_mathtext(self, rcdict):
         plt.rcParams.update({f"mathtext.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_figure(self, rcdict):
         plt.rcParams.update({f"figure.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_image(self, rcdict):
         plt.rcParams.update({f"image.{k}": v for k, v in rcdict.items()})
+        return self
 
     def setrc_text(self, rcdict):
         plt.rcParams.update({f"text.{k}": v for k, v in rcdict.items()})
+        return self
 
     def _update_params(self):
 
