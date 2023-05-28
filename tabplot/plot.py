@@ -793,9 +793,14 @@ class Plot:
 
         if lines:
             all_labels = [l.get_label() for l in lines]
-            ax.legend(
-                lines, all_labels, loc=loc, bbox_to_anchor=bbox_to_anchor, ncols=ncols
-            )
+            if all([a.startswith('_') for a in all_labels]): 
+                # Unlabeled
+                # ax.legend(loc=loc, bbox_to_anchor=bbox_to_anchor, ncols=ncols)
+                pass
+            else: 
+                ax.legend(
+                    lines, all_labels, loc=loc, bbox_to_anchor=bbox_to_anchor, ncols=ncols
+                )
         else:
             ax.legend(loc=loc, bbox_to_anchor=bbox_to_anchor, ncols=ncols)
 
