@@ -744,6 +744,9 @@ class Plot:
         xticks_column: Optional[int] = None,
         xticklabels_column: Optional[int] = None,
     ):
+        if self.xticks or self.yticks:
+            return
+
         for file_data in file_data_list:
             # If we have more than just y-data
             if file_data.ndim > 1:
