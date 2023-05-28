@@ -750,7 +750,7 @@ class Plot:
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
         for x, y, label, zorder in zip(xs, ys, labels, zorders):
-            line = ax.plot(x, y, label=label.replace("_", "-"), zorder=zorder)
+            line = ax.plot(x, y, label=label, zorder=zorder)
             lines.extend(line)
 
             if isinstance(self.fill, float) or isinstance(self.fill, int):
