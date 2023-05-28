@@ -608,6 +608,16 @@ class Plot:
     def scale(self, x=1.0, y=1.0):
         self.xs = list(map(lambda z: scale_axis(z, x), self.xs))
         self.ys = list(map(lambda z: scale_axis(z, y), self.ys))
+        return self
+
+    def scale_twin(self, x=1.0, y=1.0):
+        self.x2s = list(map(lambda z: scale_axis(z, x), self.x2s))
+        self.y2s = list(map(lambda z: scale_axis(z, y), self.y2s))
+        return self
+
+    def scale_all(self, x=1.0, y=1.0):
+        self.xs = list(map(lambda z: scale_axis(z, x), self.xs))
+        self.ys = list(map(lambda z: scale_axis(z, y), self.ys))
         self.x2s = list(map(lambda z: scale_axis(z, x), self.x2s))
         self.y2s = list(map(lambda z: scale_axis(z, y), self.y2s))
         return self
@@ -617,12 +627,40 @@ class Plot:
         x: Union[float, Iterable[float]] = 1.0,
         y: Union[float, Iterable[float]] = 1.0,
     ):
-        num = len(self.files) + len(self.twinx)
+        num = len(self.files)
         x = make_iterable(x, 1.0, num, return_list=False)
         y = make_iterable(y, 1.0, num, return_list=False)
 
         self.xs = list(map(scale_axis, self.xs, x))
         self.ys = list(map(scale_axis, self.ys, y))
+
+        return self
+
+    def multiscale_all(
+        self,
+        x: Union[float, Iterable[float]] = 1.0,
+        y: Union[float, Iterable[float]] = 1.0,
+    ):
+        num = self.n_total_files()
+        x = make_iterable(x, 1.0, num, return_list=False)
+        y = make_iterable(y, 1.0, num, return_list=False)
+
+        self.xs = list(map(scale_axis, self.xs, x))
+        self.ys = list(map(scale_axis, self.ys, y))
+        self.x2s = list(map(scale_axis, self.x2s, x))
+        self.y2s = list(map(scale_axis, self.y2s, y))
+
+        return self
+
+    def multiscale_twin(
+        self,
+        x: Union[float, Iterable[float]] = 1.0,
+        y: Union[float, Iterable[float]] = 1.0,
+    ):
+        num = len(self.twinx)
+        x = make_iterable(x, 1.0, num, return_list=False)
+        y = make_iterable(y, 1.0, num, return_list=False)
+
         self.x2s = list(map(scale_axis, self.x2s, x))
         self.y2s = list(map(scale_axis, self.y2s, y))
 
