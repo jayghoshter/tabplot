@@ -1,11 +1,13 @@
 from tabplot import Plot
 import matplotlib.pyplot as plt
+import numpy as np
 
 class BarPlot(Plot):
     bar_width: float
 
     def __init__(self, **kwargs) -> None:
         self.bar_width = 0.25
+        self.strip_xticklabels: bool = True
         super().__init__(**kwargs)
 
     def _plot_data(self, ax, xs, ys, labels, zorders):
@@ -54,6 +56,13 @@ class BarPlot(Plot):
             xtl = xtick_labels
         else: 
             xtl = [ str(x) for x in xtx ]
+
+        # Strip xticklabels if values are 0
+        if self.strip_xticklabels:
+            ys = np.array(self.ys)
+            for i in range(len(xtl)):
+                if not any(ys[:,i]):
+                    xtl[i] = ''
 
         if len(xticks) or len(xtick_labels):
             plt.xticks(xtx, xtl)
