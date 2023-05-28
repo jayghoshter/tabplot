@@ -65,3 +65,40 @@ class TestExamplePlot(unittest.TestCase):
         super().tearDown()
         shutil.rmtree(self.resource_dir)
         shutil.rmtree(self.output_dir)
+
+class TestManualXYAssignment(unittest.TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.resource_dir = Path("./test_resources")
+        self.output_dir = Path("./test_output")
+        self.reference_dir = Path("./tests/reference")
+
+        self.resource_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(exist_ok=True)
+
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        shutil.rmtree(self.resource_dir)
+        shutil.rmtree(self.output_dir)
+
+    def test_line_plot_basic(self):
+        output_filename = "line_plot_no_files.png"
+        reference_filename = "line_plot_no_files.png"
+        plot = Plot(destdir=self.output_dir)
+        plot.figsize = (4.0, 4.0)
+        # plot.files = [str(self.resource_dir / "test.csv")]
+        x = np.linspace(-10, 10, 100)
+        y = (10 * x) ** 2
+        plot.xs = [x]
+        plot.ys = [y]
+        plot.labels = [r"$y = (10x)^2$"]
+        plot.draw().save(output_filename)
+
+        comp = filecmp.cmp(
+            self.reference_dir / reference_filename,
+            self.output_dir / output_filename,
+            shallow=False,
+        )
+        self.assertTrue(comp)
