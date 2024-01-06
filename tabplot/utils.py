@@ -7,6 +7,30 @@ import numexpr as ne
 
 from typing import Iterable
 
+def find_files(pattern:str, dir='.', recursive=False, ignore_files:list|None=None, ignore_dirs:list|None=None):
+    # return [ p for p in Path('.').rglob('*') if p.is_file() and STATEDIR not in p.parents]
+    if ignore_dirs is not None:
+        ignore_dirs = [Path(dir) for dir in ignore_dirs]
+    else: 
+        ignore_dirs = []
+
+    if ignore_files is not None:
+        ignore_files = [Path(f) for f in ignore_files]
+    else: 
+        ignore_files = []
+
+    if recursive: 
+        files = [ p for p in Path(dir).rglob(pattern) if p.is_file() ]
+    else: 
+        files = [ p for p in Path(dir).glob(pattern) if p.is_file() ]
+
+    for dir in ignore_dirs:
+        files = list(filter(lambda f: dir not in f.parents, files))
+
+    for ignore_file in ignore_files:
+        files = list(filter(lambda f: ignore_file != str(f), files))
+
+    return files
 
 def make_iterable(obj, default_value, default_length, return_list=True) -> Iterable:
     """
