@@ -1,6 +1,7 @@
 from tabplot import Plot
 import matplotlib.pyplot as plt
 import numpy as np
+from math import isnan
 
 class BarPlot(Plot):
     bar_width: float
@@ -17,6 +18,7 @@ class BarPlot(Plot):
         num_files = len(ys)
 
         for x, y, label in zip(xs, ys, labels):
+            y = [ 0.0 if isnan(iy) else iy for iy in y ]
             width = self.bar_width
             shiftwidth = (num_files - 1) * width / 2.0
             position = [bar_count * width - shiftwidth + i for i in indices]
