@@ -22,7 +22,15 @@ class BarPlot(Plot):
             width = self.bar_width
             shiftwidth = (num_files - 1) * width / 2.0
             position = [bar_count * width - shiftwidth + i for i in indices]
-            line = ax.bar(position, y, width=width, label=label)
+
+            ## Interpret empty y-lists as zeroes
+            if(len(position) == len(y)):
+                line = ax.bar(position, y, width=width, label=label)
+            elif len(y) == 0:
+                line = ax.bar(position, [0]*len(position), width=width, label=label)
+            else:
+                raise RuntimeError("Length mismatch")
+
             lines.append(line)
             bar_count = bar_count + 1
             # if args['xticks_column'] is not None:
