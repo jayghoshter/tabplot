@@ -7,7 +7,7 @@ class BarPlot(Plot):
     bar_width: float
 
     def __init__(self, **kwargs) -> None:
-        self.bar_width = 0.25
+        self.bar_width = kwargs.get('bar_width', 0.25)
         self.strip_xticklabels: bool = True
         super().__init__(**kwargs)
 
