@@ -114,6 +114,7 @@ class Plot:
     _markeredgewidths: float | Iterable[float] = []
     _fillstyles: str | Iterable[str] = []
 
+    color_cycle_length:Optional[int] = None
     line_color_indices: int | Iterable[int] = []
     line_color_indices_2: int | Iterable[int] = []
 
@@ -380,23 +381,28 @@ class Plot:
 
     def _update_params(self):
 
-        n_total_files = self.n_total_files()
+        color_cycle_length = self.color_cycle_length if self.color_cycle_length else self.n_total_files()
 
         cmap = mpl.cm.get_cmap(name=self.colormap)
         if "colors" in cmap.__dict__:
             # Discrete colormap
             self.colors = cmap.colors
+            self.colors = make_iterable(self.colors, 'b', color_cycle_length, True)
         else:
             # Continuous colormap
             self.colors = [
-                cmap(1.0 * i / (n_total_files - 1)) for i in range(n_total_files)
+                cmap(1.0 * i / (color_cycle_length - 1)) for i in range(color_cycle_length)
             ]
 
         if self.line_color_indices:
             self.line_color_indices = make_iterable(
-                self.line_color_indices, 0, n_total_files, return_list=True
+                self.line_color_indices, 0, self.n_total_files(), return_list=True
             )
             self.colors = [self.colors[i] for i in self.line_color_indices]
+
+        # if self.color_cycle_length:
+        #     self.colors = make_iterable(self.colors, 'b', self.color_cycle_length, True)
+        self.colors = make_iterable(self.colors, 'b', self.n_total_files(), True)
 
         # Create a cycler
         self.props_cycler = self._get_props_cycler()
