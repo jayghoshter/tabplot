@@ -11,8 +11,8 @@ class ViolinPlot(Plot):
         super().__init__(**kwargs)
         self.show_legend = False
 
-    def _plot_data(self, ax, xs, ys, labels, zorders):
-        violin_parts = ax.violinplot([ y[~np.isnan(y)] for y in ys ])
+    def _plot_data(self, ax, xs, ys, labels, zorders, **kwargs):
+        violin_parts = ax.violinplot([ y[~np.isnan(y)] for y in ys ], **kwargs)
         for pc, color in zip(violin_parts['bodies'], self.colors):
             pc.set_color(color)
             # pc.set_facecolor(color)
