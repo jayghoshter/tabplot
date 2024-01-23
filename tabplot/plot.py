@@ -889,7 +889,7 @@ class Plot:
         self.lines.extend(line)
         return self
 
-    def draw(self, clean: bool = True):
+    def draw(self, clean: bool = True, **kwargs):
         # PREPROCESSING:
 
         if not self.ys: 
@@ -902,14 +902,14 @@ class Plot:
 
         # PROCESSING:
         print(f"Processing files: {self.files}")
-        lines = self._plot_data(self.ax, self.xs, self.ys, labels_iter, zorders_iter)
+        lines = self._plot_data(self.ax, self.xs, self.ys, labels_iter, zorders_iter, **kwargs)
         self.lines = lines 
 
         lines2 = []
         if self.twinx:
             print(f"Processing twin files: {self.twinx}")
             lines2 = self._plot_data(
-                self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter
+                self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter, **kwargs
             )
             self.lines2 = lines2 
 
