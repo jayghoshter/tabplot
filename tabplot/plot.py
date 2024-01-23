@@ -151,7 +151,9 @@ class Plot:
         self.ax = None
         self.ax2 = None
         self.lines = []
+        self.lines2 = []
         self.aux_lines = []
+        self.aux_lines2 = []
 
         default_instance_attributes = inspect.getmembers(self, lambda x: not(inspect.isroutine(x)))
         default_instance_attributes = {k:v for k,v in default_instance_attributes if not k.startswith('_')}
@@ -868,12 +870,16 @@ class Plot:
 
     def hlines(self, yvals, **kwargs):
         xlim = self.ax.get_xlim()
-        self.ax.hlines(yvals, xlim[0], xlim[1], **kwargs)
+        lineCollection = self.ax.hlines(yvals, xlim[0], xlim[1], **kwargs)
+        # for line,label in zip(lineCollection.get_segments(), kwargs.get('labels')):
+        #     line.set_label(label)
+        # self.aux_lines.extend(lineCollection.get_segments())
         return self
 
     def vlines(self, xvals, **kwargs):
         ylim = self.ax.get_ylim()
-        self.ax.vlines(xvals, ylim[0], ylim[1], **kwargs)
+        lineCollection = self.ax.vlines(xvals, ylim[0], ylim[1], **kwargs)
+        # self.aux_lines.extend(lineCollection.get_segments())
         return self
 
     def mcline(self, m, c, label='mcline', zorder=0):
@@ -897,6 +903,7 @@ class Plot:
         # PROCESSING:
         print(f"Processing files: {self.files}")
         lines = self._plot_data(self.ax, self.xs, self.ys, labels_iter, zorders_iter)
+        self.lines = lines 
 
         lines2 = []
         if self.twinx:
@@ -904,8 +911,7 @@ class Plot:
             lines2 = self._plot_data(
                 self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter
             )
-
-        self.lines = lines + lines2
+            self.lines2 = lines2 
 
         return self
 
@@ -917,11 +923,11 @@ class Plot:
 
         if self.show_legend:
             if self.combine_legends:
-                self._plot_legend(self.ax, self.lines + self.aux_lines, loc="best")
+                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2, loc="best")
             else:
-                self._plot_legend(self.ax, loc="best")
+                self._plot_legend(self.ax, self.lines+self.aux_lines, loc="best")
                 if self.twinx:
-                    self._plot_legend(self.ax2, loc="best")
+                    self._plot_legend(self.ax2, self.lines2+self.aux_lines2, loc="best")
 
         plt.show()
         return self
@@ -935,14 +941,19 @@ class Plot:
         if overwrite is None:
             overwrite = self.overwrite
 
+        # TODO: auto detect vs manual?
+        # TODO: Combine vs not
         if self.show_legend:
             if self.combine_legends:
-                self._plot_legend(self.ax, self.lines + self.aux_lines)
+                # self._plot_legend(self.ax, self.lines + self.aux_lines)
+                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2, loc="best")
             else:
                 # TODO: Allow setting legend location for ax2 separately
                 self._plot_legend(self.ax)
+                # self._plot_legend(self.ax, self.lines+self.aux_lines, loc="best")
                 if self.twinx:
                     self._plot_legend(self.ax2)
+                    # self._plot_legend(self.ax2, self.lines2+self.aux_lines2, loc="best")
 
         if destdir is None:
             destdir = self.destdir
