@@ -73,3 +73,5 @@ BarPlot(bar_width = 0.5).read(files).draw().save('dummy.pdf').close()
 - Make sure to close the current plot with `.close()`. Unless garbage collected, plots may linger and calling `.show()` for some other object may also display a previous unclosed figure.
 - hlines/vlines must be called after all plots/fit_lines etc are done so that no further changes to xlims, ylims are effected later.
 - legends don't include hlines
+- preload-style can affect legend style even if not explicitly specified because we use setrc() in _update_params. So the default value overrides anything given in the style. While this is to be expected, the question is if this is user-friendly or not. Maybe a n otice is sufficient, that --preload-style can have this behavior.
+    - [TASK] perhaps I can separate out the setrc_defaults() and call it at another time? Or only call it if the user has specified changes to the default values
