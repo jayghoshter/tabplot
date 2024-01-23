@@ -962,12 +962,14 @@ class Plot:
 
         destdir.mkdir(exist_ok=True)
 
-        if overwrite:
+        if Path(destdir / filename).exists() and not overwrite:
+            return self
+        else:
             self.fig.savefig(
                 destdir / filename, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches
             )
             print(f"Saved as {destdir / filename}\n")
-        return self
+            return self
 
     def __rich_repr__(self):
         yield self.files
