@@ -52,7 +52,7 @@ def make_iterable(obj, default_value, default_length, return_list=True) -> Itera
         return obj
 
 
-def readfile(data_path, delimiter=None, header=False):
+def readfile(data_path, delimiter=None, header=False, dtype=object):
     if delimiter is None:
         with open(data_path, newline="") as csvfile:
             if "," in csvfile.readline():
@@ -62,11 +62,11 @@ def readfile(data_path, delimiter=None, header=False):
 
     # Whitespace delimiter
     if delimiter is None:
-        return np.loadtxt(data_path, dtype=object, skiprows=skiprows).T
+        return np.loadtxt(data_path, dtype=dtype, skiprows=skiprows).T
     else:
         # Comma or specified
         return np.loadtxt(
-            data_path, dtype=object, delimiter=delimiter, skiprows=skiprows
+            data_path, dtype=dtype, delimiter=delimiter, skiprows=skiprows
         ).T
 
 
