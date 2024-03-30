@@ -235,8 +235,7 @@ class Plot:
         self._zorders = value
 
     def n_total_files(self):
-        # return len(self.xs)
-        return len(self.xs) + len(self.x2s)
+        return len(self.ys) + len(self.y2s)
 
     @property
     def linestyles(self) -> Iterable:
@@ -410,8 +409,8 @@ class Plot:
         self.props_cycler = self._get_props_cycler()
 
         if self.twinx:
-            self.props_cycler2 = self.props_cycler[len(self.files):].concat(
-                self.props_cycler[:len(self.files)]
+            self.props_cycler2 = self.props_cycler[len(self.ys):].concat(
+                self.props_cycler[:len(self.ys)]
             )
 
         # Set rc params
@@ -646,7 +645,7 @@ class Plot:
         x: Union[float, Iterable[float]] = 1.0,
         y: Union[float, Iterable[float]] = 1.0,
     ):
-        num = len(self.files)
+        num = len(self.ys)
         x = make_iterable(x, 1.0, num, return_list=False)
         y = make_iterable(y, 1.0, num, return_list=False)
 
