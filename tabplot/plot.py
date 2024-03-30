@@ -580,6 +580,7 @@ class Plot:
         labels: Optional[list] = None,
         xticks_column: Optional[int] = None,
         xticklabels_column: Optional[int] = None,
+        transpose: bool = False,
     ):
 
         if files is not None:
@@ -592,10 +593,18 @@ class Plot:
             self.labels = labels
 
         file_data_list = self._read_files(self.files, header)
+
+        if transpose:
+            file_data_list = list(np.array(file_data_list).T)
+
         self.xs, self.ys = self._extract_coordinate_data(file_data_list, columns)
         self._process_tick_data(file_data_list, xticks_column, xticklabels_column)
 
         file_data_list_2 = self._read_files(self.twinx, header)
+
+        if transpose:
+            file_data_list_2 = list(np.array(file_data_list_2).T)
+
         self.x2s, self.y2s = self._extract_coordinate_data(file_data_list_2, columns)
         self._process_tick_data(file_data_list_2, xticks_column, xticklabels_column)
 
