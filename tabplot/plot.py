@@ -945,7 +945,7 @@ class Plot:
         if self.show_legend:
             if self.combine_legends:
                 # self._plot_legend(self.ax, self.lines + self.aux_lines)
-                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2, loc="best")
+                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2)
             else:
                 # TODO: Allow setting legend location for ax2 separately
                 self._plot_legend(self.ax)
