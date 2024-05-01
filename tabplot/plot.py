@@ -668,6 +668,17 @@ class Plot:
         self.y2s = list(map(lambda z: scale_axis(z, y), self.y2s))
         return self
 
+    def translate(
+        self,
+        dx: Union[float, np.ndarray] = 0.0,
+        dy: Union[float, np.ndarray] = 0.0,
+        ):
+        """ Translate all xs and ys by dx and dy respectively """
+
+        self.xs = [ x + dx for x in self.xs ]
+        self.ys = [ y + dy for y in self.ys ]
+        return self
+
     def multiscale(
         self,
         x: Union[float, Iterable[float]] = 1.0,
