@@ -564,7 +564,7 @@ class Plot:
             if self.y2lims:
                 ax2.set_ylim(self.y2lims)
 
-            ax2.autoscale(tight=True)
+            # ax2.autoscale(tight=True)
 
         # WARNING: If setup is called more than once, this may be messed up
         if self.reverse_x:
