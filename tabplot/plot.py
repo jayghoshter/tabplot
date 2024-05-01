@@ -113,6 +113,7 @@ class Plot:
     _markeredgecolors: str | Iterable[str] = []
     _markeredgewidths: float | Iterable[float] = []
     _fillstyles: str | Iterable[str] = []
+    _markevery: str | Iterable[str] = []
 
     color_cycle_length:Optional[int] = None
     line_color_indices: int | Iterable[int] = []
@@ -246,6 +247,16 @@ class Plot:
     @linestyles.setter
     def linestyles(self, value):
         self._linestyles = value
+
+    @property
+    def markevery(self) -> Iterable:
+        return make_iterable(
+            self._markevery, None, self.n_total_files(), return_list=True
+        )
+
+    @markevery.setter
+    def markevery(self, value):
+        self._markevery = value
 
     @property
     def linewidths(self) -> Iterable:
@@ -466,6 +477,7 @@ class Plot:
             markeredgecolor=self.markeredgecolors[: self.n_total_files()],
             markerfacecolor=self.markerfacecolors[: self.n_total_files()],
             fillstyle=self.fillstyles,
+            markevery=self.markevery,
         )
 
         return main_c
