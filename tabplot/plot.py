@@ -391,6 +391,10 @@ class Plot:
         plt.rcParams.update({f"text.{k}": v for k, v in rcdict.items()})
         return self
 
+    def usetex(self, flag=True):
+        plt.rcParams.update({"text.usetex": flag })
+        return self
+
     def _update_params(self):
 
         color_cycle_length = self.color_cycle_length if self.color_cycle_length else self.n_total_files()
