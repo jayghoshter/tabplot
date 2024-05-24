@@ -15,7 +15,7 @@ import numpy as np
 from collections.abc import Iterable
 from pathlib import Path
 
-from typing import Optional, Tuple, Union, Literal
+from typing import Optional, Tuple, Union, Literal, List
 import inspect
 
 class Plot:
@@ -592,7 +592,7 @@ class Plot:
         files: Optional[list] = None,
         twinx: Optional[list] = None,
         header: bool = False,
-        columns: Tuple[int, int] = (0, 1),
+        columns: Tuple[int, int|list] | List[Tuple[int, int|list]] = (0, 1),
         labels: Optional[list] = None,
         xticks_column: Optional[int] = None,
         xticklabels_column: Optional[int] = None,
@@ -761,29 +761,54 @@ class Plot:
     def _extract_coordinate_data(
         self,
         file_data_list,
-        columns: Tuple[int, int] = (0, 1),
+        columns: Tuple[int, int|list] | List[Tuple[int,int|list]] = (0, 1),
     ):
 
         xs = []
         ys = []
-        for file_data in file_data_list:
+
+        if isinstance(columns, tuple):
+            columns_iter = [columns] * len(file_data_list)
+        elif isinstance(columns, list):
+            assert len(columns) == len(file_data_list)
+            columns_iter = columns
+
+        print(columns_iter)
+
+        for file_data,cols in zip(file_data_list, columns_iter):
             if file_data.ndim == 1:
                 x = np.array([])
-                y = file_data.astype("float64") if columns[1] != -1 else np.array([])
+                y = file_data.astype("float64") if cols[1] != -1 else np.array([])
+                xs.append(x)
+                ys.append(y)
             else:
-                x = (
-                    file_data[columns[0]].astype("float64")
-                    if columns[0] != -1
-                    else np.array([])
-                )
-                y = (
-                    file_data[columns[1]].astype("float64")
-                    if columns[1] != -1
-                    else np.array([])
-                )
-
-            xs.append(x)
-            ys.append(y)
+                if isinstance(cols[1], list):
+                    x = (
+                        file_data[cols[0]].astype("float64")
+                        if cols[0] != -1
+                        else np.array([])
+                    )
+                    for ycol in cols[1]:
+                        y = (
+                            file_data[ycol].astype("float64")
+                            if ycol != -1
+                            else np.array([])
+                        )
+                        xs.append(x)
+                        ys.append(y)
+                else:
+                    x = (
+                        file_data[cols[0]].astype("float64")
+                        if cols[0] != -1
+                        else np.array([])
+                    )
+                    y = (
+                        file_data[cols[1]].astype("float64")
+                        if cols[1] != -1
+                        else np.array([])
+                    )
+                    xs.append(x)
+                    ys.append(y)
 
         return xs, ys
 
