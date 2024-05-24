@@ -629,7 +629,8 @@ class Plot:
         return self
 
     def normalize_y(self, refValue=None):
-        self.ys = list(map(lambda y: normalize(y, refValue), self.ys))
+        refValues = make_iterable(refValue, None, len(self.ys), return_list=True)
+        self.ys = list(map(lambda y,ref: normalize(y, ref), self.ys, refValues))
         return self
 
     def normalize_y2(self, refValue=None):
