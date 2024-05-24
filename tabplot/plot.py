@@ -646,9 +646,12 @@ class Plot:
         self.normalize_y(refy)
         return self
 
-    def smoothen(self, order=3, npoints=250):
-        self.xs, self.ys = smoothen_xys(self.xs, self.ys, order, npoints)
-        self.x2s, self.y2s = smoothen_xys(self.x2s, self.y2s, order, npoints)
+    def smoothen(self, order=3, npoints=250, axes='both'):
+        if axes == 'xy' or axes == 'both':
+            self.xs, self.ys = smoothen_xys(self.xs, self.ys, order, npoints)
+
+        if axes == 'x2y2' or axes == 'both':
+            self.x2s, self.y2s = smoothen_xys(self.x2s, self.y2s, order, npoints)
         return self
 
     def scale(self, x=1.0, y=1.0):
