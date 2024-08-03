@@ -789,7 +789,7 @@ class Plot:
                     # print(file_headers)
                     headerlabels.append(file_headers[ycol] if ycol != column_idx_sentinel else '---')
             else:
-                headerlabels.append(file_headers[ycol] if ycol != column_idx_sentinel else '---')
+                headerlabels.append(file_headers[cols[1]] if cols[1] != column_idx_sentinel else '---')
 
         return headerlabels
 
