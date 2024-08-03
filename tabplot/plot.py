@@ -776,23 +776,25 @@ class Plot:
 
         print(columns_iter)
 
+        column_idx_sentinel = -999
+
         for file_data,cols in zip(file_data_list, columns_iter):
             if file_data.ndim == 1:
                 x = np.array([])
-                y = file_data.astype("float64") if cols[1] != -1 else np.array([])
+                y = file_data.astype("float64") if cols[1] != column_idx_sentinel else np.array([])
                 xs.append(x)
                 ys.append(y)
             else:
                 if isinstance(cols[1], list):
                     x = (
                         file_data[cols[0]].astype("float64")
-                        if cols[0] != -1
+                        if cols[0] != column_idx_sentinel
                         else np.array([])
                     )
                     for ycol in cols[1]:
                         y = (
                             file_data[ycol].astype("float64")
-                            if ycol != -1
+                            if ycol != column_idx_sentinel
                             else np.array([])
                         )
                         xs.append(x)
@@ -800,12 +802,12 @@ class Plot:
                 else:
                     x = (
                         file_data[cols[0]].astype("float64")
-                        if cols[0] != -1
+                        if cols[0] != column_idx_sentinel
                         else np.array([])
                     )
                     y = (
                         file_data[cols[1]].astype("float64")
-                        if cols[1] != -1
+                        if cols[1] != column_idx_sentinel
                         else np.array([])
                     )
                     xs.append(x)
