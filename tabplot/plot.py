@@ -1,5 +1,5 @@
 from tabplot.utils import make_iterable
-from tabplot.utils import readfile
+from tabplot.utils import readfile, readheader
 from tabplot.utils import normalize
 from tabplot.utils import scale_axis
 from tabplot.utils import smoothen_xys
@@ -28,6 +28,8 @@ class Plot:
     xlabel_loc: str = "center"
     ylabel_loc: str = "center"
     y2label_loc: str = "center"
+
+    labels_from_headers: bool = True
 
     # Size and dimension
     aspect: str = "auto"
@@ -610,6 +612,9 @@ class Plot:
 
         file_data_list = self._read_files(self.files, header)
 
+        if header and self.labels_from_headers:
+            self._labels = self._extract_header_labels(columns)
+
         if transpose:
             file_data_list = list(np.array(file_data_list).T)
 
@@ -752,12 +757,41 @@ class Plot:
 
         file_data_list = []
 
+        self.headers=[]
         for filename in files:
 
             file_data = readfile(filename, header=header)
             file_data_list.append(file_data)
 
+            if header and self.labels_from_headers:
+                self.headers = readheader(filename)
+
         return file_data_list
+
+    def _extract_header_labels(
+        self,
+        columns: Tuple[int, int|list] | List[Tuple[int,int|list]] = (0, 1),
+    ):
+
+        column_idx_sentinel = -999
+
+        if isinstance(columns, tuple):
+            columns_iter = [columns] * len(self.headers)
+        elif isinstance(columns, list):
+            assert len(columns) == len(self.headers)
+            columns_iter = columns
+
+        headerlabels = []
+        for file_headers,cols in zip(self.headers, columns_iter):
+            if isinstance(cols[1], list):
+                for ycol in cols[1]:
+                    # print(ycol)
+                    # print(file_headers)
+                    headerlabels.append(file_headers[ycol] if ycol != column_idx_sentinel else '---')
+            else:
+                headerlabels.append(file_headers[ycol] if ycol != column_idx_sentinel else '---')
+
+        return headerlabels
 
     def _extract_coordinate_data(
         self,
@@ -773,8 +807,6 @@ class Plot:
         elif isinstance(columns, list):
             assert len(columns) == len(file_data_list)
             columns_iter = columns
-
-        print(columns_iter)
 
         column_idx_sentinel = -999
 

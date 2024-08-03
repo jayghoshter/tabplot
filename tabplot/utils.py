@@ -69,6 +69,16 @@ def readfile(data_path, delimiter=None, header=False, dtype=object):
             data_path, dtype=dtype, delimiter=delimiter, skiprows=skiprows
         ).T
 
+def readheader(data_path, delimiter=None):
+    headers = []
+    import csv
+    from io import StringIO
+    with open(data_path, newline="") as csvfile:
+        headerline = csvfile.readline()
+        if ',' in headerline: 
+            header_io = StringIO(headerline)
+            headers.append(csv.reader(header_io, delimiter=',').__next__())
+    return headers
 
 def normalize(data: np.ndarray, refValue=None):
     """Normalize array to either max value or given refValue"""
