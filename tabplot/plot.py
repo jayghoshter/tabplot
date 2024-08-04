@@ -19,21 +19,21 @@ from typing import Optional, Tuple, Union, Literal, List
 import inspect
 
 class Plot:
-
-
-    # Labels
     title: str = ""
     xlabel: str = ""
     ylabel: str = ""
     xlabel_loc: str = "center"
     ylabel_loc: str = "center"
-    y2label_loc: str = "center"
 
     labels_from_headers: bool = True
 
     # Size and dimension
     aspect: str = "auto"
-    figsize: Tuple[float, float] = (4.0, 3.0)
+    shape: Tuple[int, int] = (1,1)
+    loc: Tuple[int, int] = (0,0)
+    rowspan:int = 1
+    colspan:int = 1
+
     xlims: Optional[Tuple[float, float]] = None
     ylims: Optional[Tuple[float, float]] = None
 
@@ -52,46 +52,16 @@ class Plot:
     ylog: bool = False
 
     sciticks: Optional[Literal['x', 'y', 'both']] = None
-    sciticks2: Optional[Literal['x', 'y', 'both']] = None
-
     show_axis: bool = True
 
-    style: Optional[list[str] | str] = None
-
-    # Allows overriding style by some settings given in this class such as font settings
-    preload_style: bool = False
     colormap: str = "tab10"
-
     show_legend: bool = True
     combine_legends: bool = True
+
     legend_loc: str = "best"
     legend_bbox_to_anchor: Optional[Tuple[float, float]] = None
     legend_ncols: int = 1 
-    legend_frameon: bool = True # if True, draw the legend on a background patch
-    legend_framealpha: float = 0.8 # legend patch transparency
-    legend_facecolor: str = "inherit" # inherit from axes.facecolor; or color spec
-    legend_edgecolor: str = "inherit"
-    legend_fancybox: bool = True # if True, use a rounded box for the
-    legend_shadow: bool = False # if True, give background a shadow effect
-    legend_numpoints: int = 1 # the number of marker points in the legend line
-    legend_scatterpoints: int = 1 # number of scatter points
-    legend_markerscale: float = 1.0 # the relative size of legend markers vs. original
-    legend_fontsize: str = "medium"
-    legend_labelcolor: Optional[str] = None
-    legend_title_fontsize: Optional[str] = None # None sets to the same as the default axes.
-    legend_borderpad: float = 0.4 # border whitespace
-    legend_labelspacing: float = 0.5 # the vertical space between the legend entries
-    legend_handlelength: float = 2.0 # the length of the legend lines
-    legend_handleheight: float = 0.7 # the height of the legend handle
-    legend_handletextpad: float = 0.8 # the space between the legend line and legend text
-    legend_borderaxespad: float = 0.5 # the border between the axes and legend edge
-    legend_columnspacing: float = 2.0 # column separation
 
-    # Twinx attributes
-    y2label: str = ""
-    y2lims: Optional[Tuple[float, float]] = None
-    y2log: bool = False
-    colormap2: str = "tab10"
     colors: list = []
 
     # Filling and hatching
@@ -101,7 +71,6 @@ class Plot:
     hatch: Optional[str] = "xxx"
     hatch_linewidth: Optional[float] = 0.5
     hatch_color: Optional[str | tuple] = "black"
-
 
     _labels: Iterable[str] = []
     _zorders: Iterable[float] = []
@@ -119,44 +88,21 @@ class Plot:
 
     color_cycle_length:Optional[int] = None
     line_color_indices: int | Iterable[int] = []
-    line_color_indices_2: int | Iterable[int] = []
-
-    # Store ndarray data from all files (including twinx)
-    _file_data_list: list = []
-
-    figure_dpi: int = 300
-
-    # lines    : list
-    # aux_lines: list
-
-    font_family: str = "sans-serif"
-    font_style: str = "normal"
-    font_variant: str = "normal"
-    font_weight: str = "normal"
-    font_stretch: str = "normal"
-    font_size: float = 10.0
 
     overwrite: bool = True
 
-    def __init__(self, **kwargs) -> None:
 
-        print("Initializing Plot")
+    fig = None
+    twinx = None
 
-        self.files: list = []
-        self.twinx: list = []
+    def __init__(self, **kwargs):
+        self.ax = None
 
+        ## NOTE: Need ys here so that inspect works as expected.
         self.xs: list[np.ndarray] = []
         self.ys: list[np.ndarray] = []
-        self.x2s: list[np.ndarray] = []
-        self.y2s: list[np.ndarray] = []
-
-        self.fig = None
-        self.ax = None
-        self.ax2 = None
         self.lines = []
-        self.lines2 = []
         self.aux_lines = []
-        self.aux_lines2 = []
 
         default_instance_attributes = inspect.getmembers(self, lambda x: not(inspect.isroutine(x)))
         default_instance_attributes = {k:v for k,v in default_instance_attributes if not k.startswith('_')}
@@ -181,45 +127,13 @@ class Plot:
         return self
 
     @property
-    def destdir(self) -> Optional[Path]:
-        return self._destdir
-
-    @destdir.setter
-    def destdir(self, value):
-        if value is not None:
-            self._destdir = Path(value)
-        else:
-            self._destdir = Path(".")
-
-    def setup(self, clean: bool = True):
-
-        if self.style and self.preload_style:
-            plt.style.use(self.style)
-
-        self._update_params()
-
-        if self.style and not self.preload_style:
-            plt.style.use(self.style)
-
-        if not self.fig:
-            self.fig, self.ax = plt.subplots(figsize=self.figsize)
-        else:
-            if clean:
-                self.ax.cla()
-                if self.ax2:
-                    self.ax2.cla()
-
-        self._setup_axes()
-        self._setup_ticks()
-
-        return self
-
-    @property
     def labels(self):
         if self._labels:
-            if len(self._labels) == self.n_total_files():
+            if len(self._labels) == self.n_total_lines():
                 return self._labels
-        return [None] * self.n_total_files()
+        # WARNING: Labels returns [] without filled p.ys
+        # TODO: Fix this
+        return [None] * self.n_total_lines()
 
     @labels.setter
     def labels(self, value):
@@ -228,22 +142,21 @@ class Plot:
     @property
     def zorders(self):
         if self._zorders:
-            if len(self._zorders) == self.n_total_files():
+            if len(self._zorders) == self.n_total_lines():
                 return self._zorders
-        # return np.linspace(0, 1, len(self.files + self.twinx))
-        return np.linspace(0, 1, self.n_total_files())
+        return np.linspace(0, 1, self.n_total_lines())
 
     @zorders.setter
     def zorders(self, value):
         self._zorders = value
 
-    def n_total_files(self):
-        return len(self.ys) + len(self.y2s)
+    def n_total_lines(self):
+        return len(self.ys)
 
     @property
     def linestyles(self) -> Iterable:
         return make_iterable(
-            self._linestyles, "solid", self.n_total_files(), return_list=True
+            self._linestyles, "solid", self.n_total_lines(), return_list=True
         )
 
     @linestyles.setter
@@ -253,7 +166,7 @@ class Plot:
     @property
     def markevery(self) -> Iterable:
         return make_iterable(
-            self._markevery, None, self.n_total_files(), return_list=True
+            self._markevery, 1, self.n_total_lines(), return_list=True
         )
 
     @markevery.setter
@@ -263,7 +176,7 @@ class Plot:
     @property
     def linewidths(self) -> Iterable:
         return make_iterable(
-            self._linewidths, 1, self.n_total_files(), return_list=True
+            self._linewidths, 1, self.n_total_lines(), return_list=True
         )
 
     @linewidths.setter
@@ -273,7 +186,7 @@ class Plot:
     @property
     def markers(self) -> Iterable:
         return make_iterable(
-            self._markers, None, self.n_total_files(), return_list=True
+            self._markers, 'None', self.n_total_lines(), return_list=True
         )
 
     @markers.setter
@@ -283,7 +196,7 @@ class Plot:
     @property
     def markersizes(self) -> Iterable:
         return make_iterable(
-            self._markersizes, 4.0, self.n_total_files(), return_list=True
+            self._markersizes, 4.0, self.n_total_lines(), return_list=True
         )
 
     @markersizes.setter
@@ -293,7 +206,7 @@ class Plot:
     @property
     def markeredgewidths(self) -> Iterable:
         return make_iterable(
-            self._markeredgewidths, 1.0, self.n_total_files(), return_list=True
+            self._markeredgewidths, 1.0, self.n_total_lines(), return_list=True
         )
 
     @markeredgewidths.setter
@@ -304,7 +217,7 @@ class Plot:
     def markeredgecolors(self) -> Iterable:
         if self._markeredgecolors:
             return make_iterable(
-                self._markeredgecolors, None, self.n_total_files(), return_list=True
+                self._markeredgecolors, None, self.n_total_lines(), return_list=True
             )
         else:
             return self.colors
@@ -316,7 +229,7 @@ class Plot:
     @property
     def fillstyles(self) -> Iterable:
         return make_iterable(
-            self._fillstyles, "full", self.n_total_files(), return_list=True
+            self._fillstyles, "full", self.n_total_lines(), return_list=True
         )
 
     @fillstyles.setter
@@ -327,7 +240,7 @@ class Plot:
     def markerfacecolors(self) -> Iterable:
         if self._markerfacecolors:
             return make_iterable(
-                self._markerfacecolors, None, self.n_total_files(), return_list=True
+                self._markerfacecolors, None, self.n_total_lines(), return_list=True
             )
         else:
             return self.colors
@@ -352,136 +265,53 @@ class Plot:
         # data.update(
         #     {
         #         k: self.__getattribute__(k)
-        #         for k, v in Plot.__dict__.items()
+        #         for k, v in PlotAxis.__dict__.items()
         #         if isinstance(v, property)
         #     }
         # )
 
-    def setrc(self, rcdict):
-        plt.rcParams.update(rcdict)
-        return self
-
-    def setrc_axes(self, rcdict):
-        plt.rcParams.update({f"axes.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_xtick(self, rcdict):
-        plt.rcParams.update({f"xtick.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_ytick(self, rcdict):
-        plt.rcParams.update({f"ytick.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_grid(self, rcdict):
-        plt.rcParams.update({f"grid.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_mathtext(self, rcdict):
-        plt.rcParams.update({f"mathtext.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_figure(self, rcdict):
-        plt.rcParams.update({f"figure.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_image(self, rcdict):
-        plt.rcParams.update({f"image.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def setrc_text(self, rcdict):
-        plt.rcParams.update({f"text.{k}": v for k, v in rcdict.items()})
-        return self
-
-    def usetex(self, flag=True):
-        plt.rcParams.update({"text.usetex": flag })
-        return self
-
     def _update_params(self):
 
-        color_cycle_length = self.color_cycle_length if self.color_cycle_length else self.n_total_files()
+        # WARNING: in figures with multiple plots, the last plot setting overrides everything.
+        # TODO: Fixme. Some of this might benefit moving to a new Figure class?
 
-        cmap = mpl.cm.get_cmap(name=self.colormap)
-        if "colors" in cmap.__dict__:
-            # Discrete colormap
-            self.colors = cmap.colors
-            self.colors = make_iterable(self.colors, 'b', color_cycle_length, True)
-        else:
-            # Continuous colormap
-            self.colors = [
-                cmap(1.0 * i / (color_cycle_length - 1)) for i in range(color_cycle_length)
-            ]
+        color_cycle_length = self.color_cycle_length if self.color_cycle_length else self.n_total_lines()
+
+        if not self.colors:
+            cmap = mpl.cm.get_cmap(name=self.colormap)
+            if "colors" in cmap.__dict__:
+                # Discrete colormap
+                self.colors = cmap.colors
+                self.colors = make_iterable(self.colors, 'b', color_cycle_length, True)
+            else:
+                # Continuous colormap
+                self.colors = [
+                    cmap(1.0 * i / (color_cycle_length - 1)) for i in range(color_cycle_length)
+                ]
 
         if self.line_color_indices:
             self.line_color_indices = make_iterable(
-                self.line_color_indices, 0, self.n_total_files(), return_list=True
+                self.line_color_indices, 0, self.n_total_lines(), return_list=True
             )
             self.colors = [self.colors[i] for i in self.line_color_indices]
 
-        # if self.color_cycle_length:
-        #     self.colors = make_iterable(self.colors, 'b', self.color_cycle_length, True)
-        self.colors = make_iterable(self.colors, 'b', self.n_total_files(), True)
+        self.colors = make_iterable(self.colors, 'b', self.n_total_lines(), True)
 
         # Create a cycler
         self.props_cycler = self._get_props_cycler()
 
-        if self.twinx:
-            self.props_cycler2 = self.props_cycler[len(self.ys):].concat(
-                self.props_cycler[:len(self.ys)]
-            )
-
-        # Set rc params
-        self.setrc(
-            {
-                "font.family": self.font_family,
-                "font.style": self.font_style,
-                "font.variant": self.font_variant,
-                "font.weight": self.font_weight,
-                "font.stretch": self.font_stretch,
-                "font.size": self.font_size,
-            }
-        )
-
-        self.setrc(
-            {
-                "legend.frameon": self.legend_frameon,
-                "legend.framealpha": self.legend_framealpha,
-                "legend.facecolor": self.legend_facecolor,
-                "legend.edgecolor": self.legend_edgecolor,
-                "legend.fancybox": self.legend_fancybox,
-                "legend.shadow": self.legend_shadow,
-                "legend.numpoints": self.legend_numpoints,
-                "legend.scatterpoints": self.legend_scatterpoints,
-                "legend.markerscale": self.legend_markerscale,
-                "legend.fontsize": self.legend_fontsize,
-                "legend.labelcolor": self.legend_labelcolor,
-                "legend.title_fontsize": self.legend_title_fontsize,
-                "legend.borderpad": self.legend_borderpad,
-                "legend.labelspacing": self.legend_labelspacing,
-                "legend.handlelength": self.legend_handlelength,
-                "legend.handleheight": self.legend_handleheight,
-                "legend.handletextpad": self.legend_handletextpad,
-                "legend.borderaxespad": self.legend_borderaxespad,
-                "legend.columnspacing": self.legend_columnspacing,
-            }
-        )
-
-        self.setrc(
-            {
-                "figure.dpi": self.figure_dpi,
-            }
-        )
 
     def _get_props_cycler(self):
+
         main_c = cycler(
-            color=self.colors[: self.n_total_files()],
+            color=self.colors[: self.n_total_lines()],
             linestyle=self.linestyles,
             linewidth=self.linewidths,
             marker=self.markers,
             markersize=self.markersizes,
             markeredgewidth=self.markeredgewidths,
-            markeredgecolor=self.markeredgecolors[: self.n_total_files()],
-            markerfacecolor=self.markerfacecolors[: self.n_total_files()],
+            markeredgecolor=self.markeredgecolors[: self.n_total_lines()],
+            markerfacecolor=self.markerfacecolors[: self.n_total_lines()],
             fillstyle=self.fillstyles,
             markevery=self.markevery,
         )
@@ -552,22 +382,6 @@ class Plot:
         if self.ylims:
             ax.set_ylim(self.ylims)
 
-        if self.twinx:
-            if not self.ax2:
-                self.ax2 = ax.twinx()
-
-            self.ax2.set_prop_cycle(self.props_cycler2)
-            ax2 = self.ax2
-            ax2.set_ylabel(self.y2label, loc=self.y2label_loc)
-
-            if self.y2log:
-                ax2.set(yscale="log")
-
-            if self.y2lims:
-                ax2.set_ylim(self.y2lims)
-
-            # ax2.autoscale(tight=True)
-
         # WARNING: If setup is called more than once, this may be messed up
         if self.reverse_x:
             xlim = self.ax.get_xlim()
@@ -579,20 +393,14 @@ class Plot:
 
         if not self.show_axis:
             self.ax.axis('off')
-            if self.ax2:
-                self.ax2.axis('off')
 
         if self.sciticks:
             self.ax.ticklabel_format(style='sci', axis=self.sciticks, scilimits=(0,0))
 
-        if self.sciticks2: 
-            if self.ax2: 
-                self.ax2.ticklabel_format(style='sci', axis=self.sciticks, scilimits=(0,0))
 
-    def read(
+    def load(
         self,
         files: Optional[list] = None,
-        twinx: Optional[list] = None,
         header: bool = False,
         columns: Tuple[int, int|list] | List[Tuple[int, int|list]] = (0, 1),
         labels: Optional[list] = None,
@@ -604,32 +412,20 @@ class Plot:
         if files is not None:
             self.files = files
 
-        if twinx is not None:
-            self.twinx = twinx
-
         if labels is not None:
             self.labels = labels
 
         file_data_list = self._read_files(self.files, header)
 
-        if header and self.labels_from_headers:
-            self._labels = self._extract_header_labels(columns)
+        if not labels:
+            if header and self.labels_from_headers:
+                self.labels = self._extract_header_labels(columns)
 
         if transpose:
             file_data_list = list(np.array(file_data_list).T)
 
         self.xs, self.ys = self._extract_coordinate_data(file_data_list, columns)
         self._process_tick_data(file_data_list, xticks_column, xticklabels_column)
-
-        file_data_list_2 = self._read_files(self.twinx, header)
-
-        if transpose:
-            file_data_list_2 = list(np.array(file_data_list_2).T)
-
-        self.x2s, self.y2s = self._extract_coordinate_data(file_data_list_2, columns)
-        self._process_tick_data(file_data_list_2, xticks_column, xticklabels_column)
-
-        self._file_data_list = file_data_list + file_data_list_2
 
         return self
 
@@ -707,7 +503,7 @@ class Plot:
         x: Union[float, Iterable[float]] = 1.0,
         y: Union[float, Iterable[float]] = 1.0,
     ):
-        num = self.n_total_files()
+        num = self.n_total_lines()
         x = make_iterable(x, 1.0, num, return_list=False)
         y = make_iterable(y, 1.0, num, return_list=False)
 
@@ -932,19 +728,12 @@ class Plot:
 
     def fit_lines(self, xlog=False, ylog=False, **kwargs):
         lines = fit_lines(self.ax, self.xs, self.ys, xlog, ylog, **kwargs)
-
-        lines2 = []
-        if self.twinx:
-            lines2 = fit_lines(self.ax2, self.x2s, self.y2s, xlog, ylog, **kwargs)
-
-        self.aux_lines = lines + lines2
+        self.aux_lines = lines
 
         return self
 
     def extrapolate(self, kind="linear"):
         extrapolate(self.ax, self.xs, self.ys, kind)
-        if self.twinx:
-            extrapolate(self.ax2, self.x2s, self.y2s, kind)
         return self
 
     def annotate_pointwise(
@@ -960,15 +749,6 @@ class Plot:
                 ylims = self.ax.get_ylim()
                 y_pad = (ylims[1] - ylims[0]) * xypads[0]
                 self.ax.annotate(annot, (xi + x_pad, yi + y_pad))
-
-        for x, y, file_data in zip(self.x2s, self.y2s, file_data_iter):
-            annots = iter(file_data[labels_column])
-            for xi, yi, annot, xypads in zip(x, y, annots, padding_iter):
-                xlims = self.ax.get_xlim()
-                x_pad = (xlims[1] - xlims[0]) * xypads[0]
-                ylims = self.ax.get_ylim()
-                y_pad = (ylims[1] - ylims[0]) * xypads[0]
-                self.ax2.annotate(annot, (xi + x_pad, yi + y_pad))
 
         return self
 
@@ -993,30 +773,60 @@ class Plot:
         self.lines.extend(line)
         return self
 
-    def draw(self, clean: bool = True, **kwargs):
-        # PREPROCESSING:
+    @property
+    def destdir(self) -> Optional[Path]:
+        return self._destdir
 
-        if not self.ys: 
+    @destdir.setter
+    def destdir(self, value):
+        if value is not None:
+            self._destdir = Path(value)
+        else:
+            self._destdir = Path(".")
+
+    def setup(self, clean: bool = True, renew_axis:bool = False):
+
+        # if self.style and self.preload_style:
+        #     plt.style.use(self.style)
+
+        self._update_params()
+
+        # if self.style and not self.preload_style:
+        #     plt.style.use(self.style)
+
+        if not self.ax or renew_axis:
+            # self.fig, self.ax = plt.subplots(figsize=self.figsize)
+            self.ax = plt.subplot2grid(self.shape, self.loc, rowspan=self.rowspan, colspan=self.colspan, fig=self.fig)
+        else:
+            if clean:
+                self.ax.cla()
+
+        self._setup_axes()
+        self._setup_ticks()
+
+        return self
+
+    def draw(self, clean: bool = True, renew_axis:bool = False, **kwargs):
+        if not self.ys:
             return self
 
-        self.setup(clean)
+        self.setup(clean, renew_axis)
 
         labels_iter = iter(self.labels)
         zorders_iter = iter(self.zorders)
 
-        # PROCESSING:
-        print(f"Processing files: {self.files}")
         lines = self._plot_data(self.ax, self.xs, self.ys, labels_iter, zorders_iter, **kwargs)
         self.lines = lines 
 
-        lines2 = []
         if self.twinx:
-            print(f"Processing twin files: {self.twinx}")
-            lines2 = self._plot_data(
-                self.ax2, self.x2s, self.y2s, labels_iter, zorders_iter, **kwargs
-            )
-            self.lines2 = lines2 
+            self.twinx.ax = self.ax.twinx()
+            self.twinx.draw(clean, **kwargs) # NOTE: It needs to be previously loaded
+            self.lines += self.twinx.lines
 
+        return self
+
+    def legend(self, **kwargs):
+        self._plot_legend(self.ax, self.lines+self.aux_lines, **kwargs)
         return self
 
     def show(
@@ -1027,11 +837,9 @@ class Plot:
 
         if self.show_legend:
             if self.combine_legends:
-                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2, loc="best")
+                self._plot_legend(self.ax, self.lines+self.aux_lines, loc="best")
             else:
                 self._plot_legend(self.ax, self.lines+self.aux_lines, loc="best")
-                if self.twinx:
-                    self._plot_legend(self.ax2, self.lines2+self.aux_lines2, loc="best")
 
         plt.show()
         return self
@@ -1049,15 +857,9 @@ class Plot:
         # TODO: Combine vs not
         if self.show_legend:
             if self.combine_legends:
-                # self._plot_legend(self.ax, self.lines + self.aux_lines)
-                self._plot_legend(self.ax, self.lines + self.lines2 + self.aux_lines+self.aux_lines2)
+                self._plot_legend(self.ax, self.lines + self.aux_lines)
             else:
-                # TODO: Allow setting legend location for ax2 separately
                 self._plot_legend(self.ax)
-                # self._plot_legend(self.ax, self.lines+self.aux_lines, loc="best")
-                if self.twinx:
-                    self._plot_legend(self.ax2)
-                    # self._plot_legend(self.ax2, self.lines2+self.aux_lines2, loc="best")
 
         if destdir is None:
             destdir = self.destdir
@@ -1069,7 +871,7 @@ class Plot:
         if Path(destdir / filename).exists() and not overwrite:
             return self
         else:
-            self.fig.savefig(
+            plt.savefig(
                 destdir / filename, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches
             )
             print(f"Saved as {destdir / filename}\n")
@@ -1080,7 +882,7 @@ class Plot:
         yield "files", self.files
 
     def __del__(self):
-        plt.close(self.fig)
+        plt.close()
 
     def close(self):
-        plt.close(self.fig)
+        plt.close()

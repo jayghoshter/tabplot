@@ -8,3 +8,4 @@ from .plot import Plot
 from .barplot import BarPlot
 from .histogram import Histogram
 from .violinplot import ViolinPlot
+from .figure import Figure
