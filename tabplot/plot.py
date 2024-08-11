@@ -444,7 +444,6 @@ class Plot:
 
     def normalize_x(self, refValue=None):
         self.xs = list(map(lambda x: normalize(x, refValue), self.xs))
-        self.x2s = list(map(lambda x: normalize(x, refValue), self.x2s))
         return self
 
     def normalize_xy(self, refx=None, refy=None):
@@ -452,12 +451,9 @@ class Plot:
         self.normalize_y(refy)
         return self
 
-    def smoothen(self, order=3, npoints=250, axes='both'):
-        if axes == 'xy' or axes == 'both':
-            self.xs, self.ys = smoothen_xys(self.xs, self.ys, order, npoints)
+    def smoothen(self, order=3, npoints=250):
+        self.xs, self.ys = smoothen_xys(self.xs, self.ys, order, npoints)
 
-        if axes == 'x2y2' or axes == 'both':
-            self.x2s, self.y2s = smoothen_xys(self.x2s, self.y2s, order, npoints)
         return self
 
     def scale(self, x=1.0, y=1.0):
@@ -607,8 +603,6 @@ class Plot:
         for file_headers,cols in zip(self.headers, columns_iter):
             if isinstance(cols[1], list):
                 for ycol in cols[1]:
-                    # print(ycol)
-                    # print(file_headers)
                     headerlabels.append(file_headers[ycol] if ycol != column_idx_sentinel else '---')
             else:
                 headerlabels.append(file_headers[cols[1]] if cols[1] != column_idx_sentinel else '---')
