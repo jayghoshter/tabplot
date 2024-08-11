@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 from scipy.interpolate import make_interp_spline, BSpline
 import numexpr as ne
+from fuzzywuzzy import process, fuzz
 
 from typing import Iterable
 
@@ -79,6 +80,15 @@ def readheader(data_path, delimiter=None):
             header_io = StringIO(headerline)
             headers.append(csv.reader(header_io, delimiter=',').__next__())
     return headers
+
+def fuzzy_str_to_idx(target:str|None, itemlist:list[str], sentinel_idx:int=-999):
+    if target is None:
+        return sentinel_idx
+    itemdict = {idx: el for idx, el in enumerate(itemlist)}
+    result = process.extractOne(target, itemdict, scorer=fuzz.token_set_ratio)
+    if result:
+        return result[2] # Returns the index
+    return None
 
 def normalize(data: np.ndarray, refValue=None):
     """Normalize array to either max value or given refValue"""

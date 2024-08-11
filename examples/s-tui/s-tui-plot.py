@@ -3,8 +3,6 @@
 from tabplot import Plot, Figure
 from matplotlib import pyplot as plt
 
-temperatures=[12]
-power=[-2]
 
 fig = Figure(figsize=(4,6), legend_frameon = False)
 
@@ -35,7 +33,7 @@ pTemp = (
     )
     .load(
         files=['./s-tui-log.txt'], 
-        columns=(-999, temperatures), 
+        column_names=(None, 'temp:cpu'), 
         labels=['CPU Temperature (degC)'],
         header=True
     )
@@ -52,7 +50,7 @@ pPow = (
     )
     .load(
         files=['./s-tui-log.txt'], 
-        columns=(-999, power), 
+        columns=(-999, 'power:psys'), 
         labels=['PSYS Power Consumption (W)'],
         header=True
     )

@@ -1,4 +1,4 @@
-from tabplot.utils import make_iterable
+from tabplot.utils import make_iterable, fuzzy_str_to_idx
 from tabplot.utils import readfile, readheader
 from tabplot.utils import normalize
 from tabplot.utils import scale_axis
@@ -403,6 +403,7 @@ class Plot:
         files: Optional[list] = None,
         header: bool = False,
         columns: Tuple[int, int|list] | List[Tuple[int, int|list]] = (0, 1),
+        column_names: Tuple[str, str|list[str]] | List[Tuple[str, str|list[str]]] | None = None,
         labels: Optional[list] = None,
         xticks_column: Optional[int] = None,
         xticklabels_column: Optional[int] = None,
@@ -416,6 +417,9 @@ class Plot:
             self.labels = labels
 
         file_data_list = self._read_files(self.files, header)
+
+        if header and column_names:
+            columns = self._column_names_to_indices(column_names)
 
         if not labels:
             if header and self.labels_from_headers:
@@ -563,6 +567,28 @@ class Plot:
                 self.headers = readheader(filename)
 
         return file_data_list
+
+    def _column_names_to_indices(
+        self,
+        column_names: Tuple[str|None, str|list[str]] | List[Tuple[str|None,str|list[str]]] = (0, 1),
+    ):
+        column_idx_sentinel = -999
+
+        if isinstance(column_names, tuple):
+            column_names_iter = [column_names] * len(self.headers)
+        elif isinstance(column_names, list):
+            assert len(column_names) == len(self.headers)
+            column_names_iter = column_names
+
+
+        indices = []
+        for file_headers,col_names in zip(self.headers, column_names_iter):
+            if isinstance(col_names[1], list):
+                indices.append((fuzzy_str_to_idx(col_names[0], file_headers), [ fuzzy_str_to_idx(x, file_headers) for x in col_names[1]]))
+            else:
+                indices.append((fuzzy_str_to_idx(col_names[0], file_headers), fuzzy_str_to_idx(col_names[1], file_headers)))
+
+        return indices
 
     def _extract_header_labels(
         self,
