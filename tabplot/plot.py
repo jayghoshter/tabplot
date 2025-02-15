@@ -1,4 +1,4 @@
-from tabplot.utils import make_iterable, fuzzy_str_to_idx
+from tabplot.utils import make_iterable, fuzzy_str_to_idx, get_colors_from
 from tabplot.utils import readfile, readheader
 from tabplot.utils import normalize
 from tabplot.utils import scale_axis
@@ -85,6 +85,8 @@ class Plot:
     _markeredgewidths: float | Iterable[float] = []
     _fillstyles: str | Iterable[str] = []
     _markevery: str | Iterable[str] = []
+
+    _did_update_params: bool = False
 
     color_cycle_length:Optional[int] = None
     line_color_indices: int | Iterable[int] = []
@@ -275,19 +277,14 @@ class Plot:
         # WARNING: in figures with multiple plots, the last plot setting overrides everything.
         # TODO: Fixme. Some of this might benefit moving to a new Figure class?
 
+        if(self._did_update_params):
+            return
+        self._did_update_params = True
+
         color_cycle_length = self.color_cycle_length if self.color_cycle_length else self.n_total_lines()
 
         if not self.colors:
-            cmap = mpl.cm.get_cmap(name=self.colormap)
-            if "colors" in cmap.__dict__:
-                # Discrete colormap
-                self.colors = cmap.colors
-                self.colors = make_iterable(self.colors, 'b', color_cycle_length, True)
-            else:
-                # Continuous colormap
-                self.colors = [
-                    cmap(1.0 * i / (color_cycle_length - 1)) for i in range(color_cycle_length)
-                ]
+            self.colors = get_colors_from(self.colormap, color_cycle_length)
 
         if self.line_color_indices:
             self.line_color_indices = make_iterable(
@@ -295,6 +292,7 @@ class Plot:
             )
             self.colors = [self.colors[i] for i in self.line_color_indices]
 
+        ## Stripping it down to n_total_lines() 
         self.colors = make_iterable(self.colors, 'b', self.n_total_lines(), True)
 
         # Create a cycler
@@ -428,6 +426,7 @@ class Plot:
         if transpose:
             file_data_list = list(np.array(file_data_list).T)
 
+        self.columns = columns # cache for fills
         self.xs, self.ys = self._extract_coordinate_data(file_data_list, columns)
         self._process_tick_data(file_data_list, xticks_column, xticklabels_column)
 
@@ -806,16 +805,9 @@ class Plot:
 
     def setup(self, clean: bool = True, renew_axis:bool = False):
 
-        # if self.style and self.preload_style:
-        #     plt.style.use(self.style)
-
         self._update_params()
 
-        # if self.style and not self.preload_style:
-        #     plt.style.use(self.style)
-
         if not self.ax or renew_axis:
-            # self.fig, self.ax = plt.subplots(figsize=self.figsize)
             self.ax = plt.subplot2grid(self.shape, self.loc, rowspan=self.rowspan, colspan=self.colspan, fig=self.fig)
         else:
             if clean:

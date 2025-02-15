@@ -154,3 +154,16 @@ def smoothen_xys(xs, ys, order=3, npoints=250):
         new_xs.append(xsmooth)
         new_ys.append(ysmooth)
     return new_xs, new_ys
+
+def get_colors_from(cmap='tab10', discretization=2):
+    cmap = mpl.cm.get_cmap(name=cmap)
+    if "colors" in cmap.__dict__:
+        # Discrete colormap
+        colors = cmap.colors
+    else:
+        # Continuous colormap
+        # WARNING: doesn't handle this perfectly
+        colors = [
+            cmap(1.0 * i / (discretization - 1)) for i in range(discretization)
+        ]
+    return colors
