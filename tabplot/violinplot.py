@@ -18,7 +18,7 @@ class ViolinPlot(Plot):
             # pc.set_facecolor(color)
             # pc.set_edgecolor(color)
             # pc.set_linewidth()
-            pc.set_alpha(1.0)
+            pc.set_alpha(0.5)
         return []
 
     def _setup_ticks(
