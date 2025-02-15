@@ -5,7 +5,7 @@ from tabplot import Plot
 plot = Plot()
 plot.files = ["./line_a.tsv", "./line_a.tsv", "./line_a.tsv"]
 plot.labels = ["A", "A-scaled-x", "A-scaled-y"]
-plot.read().multiscale(x=[1, 1.2, 1], y=[1, 1, 1.2]).draw().save(
+plot.load().multiscale(x=[1, 1.2, 1], y=[1, 1, 1.2]).draw().save(
     "operations-1.pdf"
 ).close()
 
@@ -14,7 +14,7 @@ plot = (
     Plot(
         files=["./line_a.tsv"],
     )
-    .read()
+    .load()
     .normalize_xy()
     .trim("x<0.4")
     .draw()
@@ -24,13 +24,13 @@ plot = (
 plot.files = ["./line_b.tsv"]
 plot.colormap = "Accent"
 plot.fill = 0.4
-plot.read().normalize_xy().draw().save("operations-3.pdf").close()
+plot.load().normalize_xy().draw().save("operations-3.pdf").close()
 
 
 # hlines and fit_lines
 plot = (
     Plot(files=["./line_a.tsv", "./line_b.tsv"], labels=["A", "B"])
-    .read()
+    .load()
     .normalize_xy()
     .multiscale(y=[1.0, 2.0])
     .draw()

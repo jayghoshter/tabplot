@@ -17,12 +17,12 @@ plot.linewidths = 2  # or [2,2] etc
 plot.legend_loc = "upper left"
 
 # Read, draw and save the plot
-plot.read()
+plot.load()
 plot.draw()
 plot.save("simple-1.pdf")
 plot.close()
 # # OR: use operator chaining to do the same
-# plot.read().draw().save('plot.pdf')
+# plot.load().draw().save('plot.pdf')
 
 # Initialize with kwargs
 Plot(
@@ -30,7 +30,7 @@ Plot(
     labels=["A", "B"],
     markers="D",
     legend_fontsize=20,
-).read().draw().save("simple-2.pdf").close()
+).load().draw().save("simple-2.pdf").close()
 
 # Initialize with dict
 attrs = {
@@ -40,4 +40,4 @@ attrs = {
     "linewidths": 2,
     "legend_loc": "upper left",
 }
-Plot(**attrs).read().draw().save("simple-3.pdf").close()
+Plot(**attrs).load().draw().save("simple-3.pdf").close()

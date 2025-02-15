@@ -10,4 +10,4 @@ Plot(
     ylabel="Y",
     y2label="Y2",
     linewidths=2,
-).read().draw().show()
+).load().draw().show()

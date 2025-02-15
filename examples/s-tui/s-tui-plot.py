@@ -62,5 +62,5 @@ pPow = (
     fig
     .load_subplots([pTemp, pPow])
     .legend(loc='lower right')
-    .save('./s-tui.pdf')
+    .save('./s-tui2.pdf')
 )
