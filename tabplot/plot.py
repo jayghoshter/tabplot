@@ -74,6 +74,7 @@ class Plot:
 
     _labels: Iterable[str] = []
     _zorders: Iterable[float] = []
+    _alphas: Iterable[float] = []
     _destdir: Optional[Path] = Path(".")
 
     _linestyles: str | Iterable[str] = []
@@ -151,6 +152,16 @@ class Plot:
     @zorders.setter
     def zorders(self, value):
         self._zorders = value
+
+    @property
+    def alphas(self):
+        return make_iterable(
+            self._alphas, 1.0, self.n_total_lines(), return_list=True
+        )
+
+    @alphas.setter
+    def alphas(self, value):
+        self._alphas = value
 
     def n_total_lines(self):
         return len(self.ys)
@@ -300,7 +311,6 @@ class Plot:
 
 
     def _get_props_cycler(self):
-
         main_c = cycler(
             color=self.colors[: self.n_total_lines()],
             linestyle=self.linestyles,
@@ -312,6 +322,7 @@ class Plot:
             markerfacecolor=self.markerfacecolors[: self.n_total_lines()],
             fillstyle=self.fillstyles,
             markevery=self.markevery,
+            alpha=self.alphas
         )
 
         return main_c
