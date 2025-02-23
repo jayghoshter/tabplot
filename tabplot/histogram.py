@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 
 class Histogram(Plot):
-    bins: int
+    bins: int | np.ndarray
     stacked: bool
     density: bool
 
@@ -15,7 +15,7 @@ class Histogram(Plot):
 
         # TODO:
         self.range: Optional[Tuple[float, float]] = None
-        self.weights: Optional[np.ndarray] = None
+        self.weights: Optional[np.ndarray | list] = None
         self.cumulative: bool = True
         self.bottom: Optional[np.ndarray | float] = True
         self.histtype: str = "bar"
@@ -26,6 +26,11 @@ class Histogram(Plot):
 
         super().__init__(**kwargs)
 
+    def load_weights_from_column(self, col:int, header=False):
+        file_data_list = self._read_files(self.files, header)
+        _, self.weights = self._extract_coordinate_data(file_data_list, (-999,col))
+        return self
+
     def _plot_data(self, ax, xs, ys, labels, zorders):
         lines = []
         n, bins, patches = ax.hist(
@@ -34,6 +39,7 @@ class Histogram(Plot):
             stacked=self.stacked,
             density=self.density,
             label=list(labels),
+            weights=self.weights,
         )
 
         return lines
